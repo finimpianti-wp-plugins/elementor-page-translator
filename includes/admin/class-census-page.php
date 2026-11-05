@@ -50,6 +50,7 @@ final class Census_Page {
 		$report  = Service::build( false );
 		$summary = $report['summary'];
 		$types   = $report['census']['types'];
+		$map     = \EPT\Content::widget_map();
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Censimento Elementor', 'ept' ); ?></h1>
@@ -84,7 +85,7 @@ final class Census_Page {
 						<th scope="col"><?php esc_html_e( 'Tipo', 'ept' ); ?></th>
 						<th scope="col"><?php esc_html_e( 'Usi', 'ept' ); ?></th>
 						<th scope="col"><?php esc_html_e( 'Documenti', 'ept' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Elemento atomico', 'ept' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Copertura', 'ept' ); ?></th>
 						<th scope="col"><?php esc_html_e( 'Campi che sembrano testo', 'ept' ); ?></th>
 					</tr>
 				</thead>
@@ -97,13 +98,21 @@ final class Census_Page {
 							$text_fields[] = $path;
 						}
 					}
-					$atomic = ! empty( $report['registry'][ $key ]['atomic'] );
+					if ( ! empty( $report['registry'][ $key ]['atomic'] ) ) {
+						$coverage = __( 'elemento atomico (per tipo di valore)', 'ept' );
+					} elseif ( 'widget' !== $type['elType'] ) {
+						$coverage = __( 'contenitore (solo link)', 'ept' );
+					} elseif ( null !== $map->fields( (string) $type['widgetType'] ) ) {
+						$coverage = __( 'mappa dei widget', 'ept' );
+					} else {
+						$coverage = __( 'regola di riserva', 'ept' );
+					}
 					?>
 					<tr>
 						<td><code><?php echo esc_html( $key ); ?></code></td>
 						<td><?php echo esc_html( (string) $type['count'] ); ?></td>
 						<td><?php echo esc_html( (string) count( $type['documents'] ) ); ?></td>
-						<td><?php echo $atomic ? esc_html__( 'sì', 'ept' ) : '—'; ?></td>
+						<td><?php echo esc_html( $coverage ); ?></td>
 						<td><?php echo esc_html( implode( ', ', $text_fields ) ); ?></td>
 					</tr>
 				<?php endforeach; ?>

@@ -22,11 +22,14 @@ final class Plugin {
 
 		Installer::maybe_upgrade();
 		Root_Pages::init();
+		Rest\Translation_Controller::init();
 
 		if ( is_admin() ) {
 			Admin\Notices::init();
 			Admin\Settings_Page::init();
 			Admin\Census_Page::init();
+			Admin\Pages_List::init();
+			Admin\Translation_Screen::init();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

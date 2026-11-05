@@ -1,0 +1,589 @@
+<?php
+/**
+ * Translation workflow for one Italian page and one language:
+ * screen data, draft save, and creation/update of the translated page.
+ *
+ * Links and references (menus, shortcodes) are copied unchanged until F4/F7;
+ * SEO fields arrive in F6.
+ *
+ * @package EPT
+ */
+
+namespace EPT;
+
+use WP_Error;
+use WP_Post;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Translation service.
+ */
+final class Translation_Service {
+
+	/**
+	 * Labels of widget types shown in the screen.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function widget_labels(): array {
+		return array(
+			'heading'                => __( 'Titolo', 'ept' ),
+			'text-editor'            => __( 'Editor di testo', 'ept' ),
+			'button'                 => __( 'Pulsante', 'ept' ),
+			'counter'                => __( 'Contatore', 'ept' ),
+			'image'                  => __( 'Immagine', 'ept' ),
+			'icon-box'               => __( 'Box con icona', 'ept' ),
+			'image-box'              => __( 'Box con immagine', 'ept' ),
+			'icon-list'              => __( 'Elenco icone', 'ept' ),
+			'accordion'              => __( 'Fisarmonica', 'ept' ),
+			'toggle'                 => __( 'Interruttore', 'ept' ),
+			'tabs'                   => __( 'Schede', 'ept' ),
+			'nested-accordion'       => __( 'Fisarmonica', 'ept' ),
+			'nested-tabs'            => __( 'Schede', 'ept' ),
+			'testimonial'            => __( 'Testimonianza', 'ept' ),
+			'alert'                  => __( 'Avviso', 'ept' ),
+			'html'                   => __( 'HTML', 'ept' ),
+			'e-heading'              => __( 'Titolo (atomico)', 'ept' ),
+			'e-paragraph'            => __( 'Paragrafo (atomico)', 'ept' ),
+			'e-button'               => __( 'Pulsante (atomico)', 'ept' ),
+			'e-image'                => __( 'Immagine (atomico)', 'ept' ),
+			'hfe-breadcrumbs-widget' => __( 'Breadcrumb (UAE)', 'ept' ),
+			'copyright'              => __( 'Copyright (UAE)', 'ept' ),
+			'site-logo'              => __( 'Logo (UAE)', 'ept' ),
+			'hfe-search-button'      => __( 'Ricerca (UAE)', 'ept' ),
+			'hfe-infocard'           => __( 'Infocard (UAE)', 'ept' ),
+		);
+	}
+
+	/**
+	 * Check that a page can be translated into a language.
+	 *
+	 * @param int    $source_id Italian page ID.
+	 * @param string $lang      Language code.
+	 * @return WP_Post|WP_Error
+	 */
+	public static function validate( int $source_id, string $lang ) {
+		$post = get_post( $source_id );
+		if ( ! $post instanceof WP_Post || 'page' !== $post->post_type || 'trash' === $post->post_status ) {
+			return new WP_Error( 'ept_not_found', __( 'Pagina non trovata.', 'ept' ), array( 'status' => 404 ) );
+		}
+		if ( ! Translations::is_source( $source_id ) ) {
+			return new WP_Error( 'ept_not_source', __( 'Questa pagina è già una traduzione: si traduce solo la pagina in lingua predefinita.', 'ept' ), array( 'status' => 400 ) );
+		}
+		if ( 'builder' !== get_post_meta( $source_id, '_elementor_edit_mode', true ) ) {
+			return new WP_Error( 'ept_not_elementor', __( 'La pagina non è costruita con Elementor.', 'ept' ), array( 'status' => 400 ) );
+		}
+		$language = Languages::get( $lang );
+		if ( null === $language || empty( $language['active'] ) ) {
+			return new WP_Error( 'ept_bad_language', __( 'Lingua non attiva.', 'ept' ), array( 'status' => 400 ) );
+		}
+		return $post;
+	}
+
+	/**
+	 * Whether the page is the static front page (its translation is the root page).
+	 *
+	 * @param int $source_id Italian page ID.
+	 */
+	public static function is_home( int $source_id ): bool {
+		return 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) === $source_id;
+	}
+
+	/**
+	 * Target parent of the translation.
+	 *
+	 * @param WP_Post $source      Italian page.
+	 * @param string  $lang        Language.
+	 * @param string  $parent_mode "" or "root" (accept the root page when the parent is not translated).
+	 * @return array{ok: bool, id: int, title: string, url: string, message: string, needs_choice: bool}
+	 */
+	public static function target_parent( WP_Post $source, string $lang, string $parent_mode = '' ): array {
+		$root_id = (int) ( Languages::get( $lang )['root_page_id'] ?? 0 );
+		$root    = array(
+			'ok'           => $root_id > 0,
+			'id'           => $root_id,
+			'title'        => $root_id ? get_the_title( $root_id ) : '',
+			'url'          => $root_id ? self::page_url( $root_id ) : '',
+			'message'      => $root_id ? '' : __( 'La pagina radice della lingua non esiste: riattiva la lingua nelle impostazioni.', 'ept' ),
+			'needs_choice' => false,
+		);
+		if ( self::is_home( $source->ID ) || 0 === (int) $source->post_parent ) {
+			return $root;
+		}
+		$parent_translation = Translations::get_id( (int) $source->post_parent, $lang );
+		if ( null !== $parent_translation ) {
+			return array(
+				'ok'           => true,
+				'id'           => $parent_translation,
+				'title'        => get_the_title( $parent_translation ),
+				'url'          => self::page_url( $parent_translation ),
+				'message'      => '',
+				'needs_choice' => false,
+			);
+		}
+		$message = sprintf(
+			/* translators: %s: title of the parent page. */
+			__( 'La pagina genitore "%s" non è ancora tradotta in questa lingua. Traducila prima, oppure appoggia questa pagina alla pagina radice.', 'ept' ),
+			get_the_title( (int) $source->post_parent )
+		);
+		if ( 'root' === $parent_mode ) {
+			$root['message'] = $message;
+			return $root;
+		}
+		return array(
+			'ok'           => false,
+			'id'           => 0,
+			'title'        => '',
+			'url'          => '',
+			'message'      => $message,
+			'needs_choice' => true,
+		);
+	}
+
+	/**
+	 * Permalink of a page as it will be once published (drafts included).
+	 *
+	 * @param int $post_id Page ID.
+	 */
+	private static function page_url( int $post_id ): string {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return '';
+		}
+		if ( 'publish' === $post->post_status ) {
+			return (string) get_permalink( $post );
+		}
+		require_once ABSPATH . 'wp-admin/includes/post.php';
+		list( $template, $name ) = get_sample_permalink( $post );
+		return str_replace( array( '%pagename%', '%postname%' ), $name, $template );
+	}
+
+	/**
+	 * Data for the translation screen.
+	 *
+	 * @param WP_Post $source Italian page.
+	 * @param string  $lang   Language.
+	 * @return array<string,mixed>
+	 */
+	public static function screen_data( WP_Post $source, string $lang ): array {
+		$language  = Languages::get( $lang );
+		$extracted = Content::extractor()->extract( Content::elements( $source->ID ) );
+		$saved     = Translations::strings( $source->ID, $lang );
+		$fields    = Translations::page_fields( $source->ID, $lang );
+		$target_id = self::target_id( $source->ID, $lang );
+		$target    = $target_id ? get_post( $target_id ) : null;
+		$labels    = self::widget_labels();
+
+		$rows   = array();
+		$groups = array();
+		$done   = 0;
+		$total  = 0;
+		foreach ( $extracted['strings'] as $item ) {
+			if ( ! in_array( $item['group'], $groups, true ) ) {
+				$groups[] = $item['group'];
+			}
+			$entry = $saved[ $item['key'] ] ?? null;
+			$state = 'new';
+			$old   = '';
+			if ( is_array( $entry ) && ( '' !== (string) ( $entry['t'] ?? '' ) || in_array( $entry['s'] ?? '', array( Translations::STATUS_SAME, Translations::STATUS_EXCLUDED ), true ) ) ) {
+				$state = ( $entry['h'] ?? '' ) === $item['hash'] ? 'translated' : 'modified';
+				$old   = 'modified' === $state ? Html_Tools::strip_noise( (string) ( $entry['o'] ?? '' ) ) : '';
+			}
+			$row    = array(
+				'key'          => $item['key'],
+				'group'        => array_search( $item['group'], $groups, true ) + 1,
+				'widget'       => $item['widget'],
+				'widget_label' => $labels[ $item['widget'] ] ?? $item['widget'],
+				'field'        => (string) substr( $item['key'], strpos( $item['key'], '|' ) + 1 ),
+				'format'       => $item['format'],
+				'source'       => $item['source'],
+				'dynamic'      => $item['dynamic'],
+				'original'     => Html_Tools::strip_noise( $item['text'] ),
+				'translation'  => is_array( $entry ) ? (string) ( $entry['t'] ?? '' ) : '',
+				'status'       => is_array( $entry ) ? (string) ( $entry['s'] ?? '' ) : '',
+				'state'        => $state,
+				'old_original' => $old,
+			);
+			$rows[] = $row;
+			if ( ! $item['dynamic'] ) {
+				++$total;
+				if ( 'new' !== $state ) {
+					++$done;
+				}
+			}
+		}
+
+		$parent_mode = (string) ( $fields['parent_mode'] ?? '' );
+		$parent      = self::target_parent( $source, $lang, $parent_mode );
+		$is_home     = self::is_home( $source->ID );
+		$title       = (string) ( $fields['title'] ?? ( $target ? $target->post_title : '' ) );
+		$slug        = $is_home ? (string) $language['prefix'] : (string) ( $fields['slug'] ?? ( $target ? $target->post_name : '' ) );
+
+		$languages = array();
+		foreach ( Languages::active() as $code => $l ) {
+			$languages[] = array(
+				'code'   => $code,
+				'name'   => $l['name'],
+				'exists' => null !== self::target_id( $source->ID, $code ),
+			);
+		}
+
+		return array(
+			'source'         => array(
+				'id'        => $source->ID,
+				'title'     => $source->post_title,
+				'slug'      => $source->post_name,
+				'edit_link' => (string) get_edit_post_link( $source->ID, 'raw' ),
+				'view_link' => (string) get_permalink( $source ),
+				'is_home'   => $is_home,
+			),
+			'lang'           => array(
+				'code'   => $lang,
+				'name'   => $language['name'],
+				'locale' => $language['locale'],
+				'prefix' => $language['prefix'],
+				'public' => ! empty( $language['public'] ),
+			),
+			'languages'      => $languages,
+			'target'         => $target ? self::target_info( $target ) : null,
+			'page'           => array(
+				'title'       => $title,
+				'slug'        => $slug,
+				'status'      => (string) ( $fields['status'] ?? 'draft' ),
+				'parent_mode' => $parent_mode,
+			),
+			'parent'         => $parent,
+			'strings'        => $rows,
+			'progress'       => array(
+				'done'  => $done,
+				'total' => $total,
+			),
+			'can_unfiltered' => current_user_can( 'unfiltered_html' ),
+			'can_publish'    => current_user_can( 'publish_pages' ),
+		);
+	}
+
+	/**
+	 * Existing translation of a page: linked page, or the root page for the front page.
+	 *
+	 * @param int    $source_id Italian page ID.
+	 * @param string $lang      Language.
+	 */
+	public static function target_id( int $source_id, string $lang ): ?int {
+		return Translations::get_id( $source_id, $lang );
+	}
+
+	/**
+	 * Public info about a translated page.
+	 *
+	 * @param WP_Post $target Translated page.
+	 * @return array<string,mixed>
+	 */
+	private static function target_info( WP_Post $target ): array {
+		return array(
+			'id'             => $target->ID,
+			'status'         => $target->post_status,
+			'title'          => $target->post_title,
+			'edit_link'      => (string) get_edit_post_link( $target->ID, 'raw' ),
+			'elementor_link' => admin_url( 'post.php?post=' . $target->ID . '&action=elementor' ),
+			'view_link'      => 'publish' === $target->post_status ? (string) get_permalink( $target ) : (string) get_preview_post_link( $target ),
+			'incomplete'     => (int) get_post_meta( $target->ID, Translations::META_INCOMPLETE, true ),
+		);
+	}
+
+	/**
+	 * Save the screen input (strings and page fields) without touching the translated page.
+	 *
+	 * @param WP_Post             $source Italian page.
+	 * @param string              $lang   Language.
+	 * @param array<string,mixed> $input  Request body: page{title,slug,status,parent_mode}, strings{key: {t, s, ok}}.
+	 * @return array{sanitized: list<string>} Keys whose markup was changed by sanitisation.
+	 */
+	public static function save_draft( WP_Post $source, string $lang, array $input ): array {
+		$extracted = Content::extractor()->extract( Content::elements( $source->ID ) );
+		$items     = array_column( $extracted['strings'], null, 'key' );
+		$saved     = Translations::strings( $source->ID, $lang );
+		$posted    = isset( $input['strings'] ) && is_array( $input['strings'] ) ? $input['strings'] : array();
+		$sanitized = array();
+
+		foreach ( $posted as $key => $row ) {
+			$key = (string) $key;
+			if ( ! isset( $items[ $key ] ) || $items[ $key ]['dynamic'] || ! is_array( $row ) ) {
+				continue;
+			}
+			$item   = $items[ $key ];
+			$status = in_array( $row['s'] ?? '', array( Translations::STATUS_SAME, Translations::STATUS_EXCLUDED ), true ) ? (string) $row['s'] : '';
+			if ( Translations::STATUS_EXCLUDED === $status && 'fallback' !== $item['source'] ) {
+				$status = '';
+			}
+			$raw  = is_string( $row['t'] ?? null ) ? (string) $row['t'] : '';
+			$text = self::sanitize_text( $raw, $item['format'] );
+			if ( $text !== $raw && self::normalize_markup( $text ) !== self::normalize_markup( $raw ) ) {
+				$sanitized[] = $key;
+			}
+			if ( '' !== $status ) {
+				$text = '';
+			} elseif ( '' !== $text ) {
+				$status = Translations::STATUS_TRANSLATED;
+			}
+
+			// A "modified" row the user did not review keeps the old hash and original.
+			$reviewed = ! empty( $row['ok'] ) || ! isset( $saved[ $key ] );
+			$previous = $saved[ $key ] ?? null;
+
+			if ( '' === $status && '' === $text ) {
+				unset( $saved[ $key ] );
+				continue;
+			}
+			$saved[ $key ] = array(
+				'h' => $reviewed || ! is_array( $previous ) ? $item['hash'] : (string) $previous['h'],
+				'o' => $reviewed || ! is_array( $previous ) ? $item['text'] : (string) $previous['o'],
+				't' => $text,
+				's' => $status,
+			);
+		}
+		Translations::save_strings( $source->ID, $lang, $saved );
+
+		$page   = isset( $input['page'] ) && is_array( $input['page'] ) ? $input['page'] : array();
+		$fields = Translations::page_fields( $source->ID, $lang );
+		if ( array_key_exists( 'title', $page ) ) {
+			$fields['title'] = sanitize_text_field( (string) $page['title'] );
+		}
+		if ( array_key_exists( 'slug', $page ) ) {
+			$fields['slug'] = sanitize_title( (string) $page['slug'] );
+		}
+		if ( array_key_exists( 'status', $page ) ) {
+			$fields['status'] = 'publish' === $page['status'] ? 'publish' : 'draft';
+		}
+		if ( array_key_exists( 'parent_mode', $page ) ) {
+			$fields['parent_mode'] = 'root' === $page['parent_mode'] ? 'root' : '';
+		}
+		Translations::save_page_fields( $source->ID, $lang, $fields );
+
+		return array( 'sanitized' => $sanitized );
+	}
+
+	/**
+	 * Sanitise a translation like Elementor does: raw HTML only with unfiltered_html.
+	 *
+	 * @param string $text   Text.
+	 * @param string $format text|html|code.
+	 */
+	public static function sanitize_text( string $text, string $format ): string {
+		unset( $format );
+		if ( current_user_can( 'unfiltered_html' ) ) {
+			return $text;
+		}
+		return wp_kses_post( $text );
+	}
+
+	/**
+	 * Markup normalised for comparison (kses may only re-quote attributes).
+	 *
+	 * @param string $html HTML.
+	 */
+	private static function normalize_markup( string $html ): string {
+		return (string) preg_replace( '/\s+/', ' ', str_replace( array( "'", '&#039;' ), '"', $html ) );
+	}
+
+	/**
+	 * Create or update the translated page.
+	 *
+	 * @param WP_Post             $source  Italian page.
+	 * @param string              $lang    Language.
+	 * @param array<string,mixed> $input   Request body (saved first, as a draft).
+	 * @param bool                $confirm Confirm generation with missing translations.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	public static function generate( WP_Post $source, string $lang, array $input, bool $confirm ) {
+		if ( ! class_exists( '\Elementor\Plugin' ) ) {
+			return new WP_Error( 'ept_no_elementor', __( 'Elementor non è attivo.', 'ept' ), array( 'status' => 500 ) );
+		}
+		$draft = self::save_draft( $source, $lang, $input );
+
+		$root = Root_Pages::ensure( $lang );
+		if ( is_wp_error( $root ) ) {
+			return $root;
+		}
+
+		$fields  = Translations::page_fields( $source->ID, $lang );
+		$parent  = self::target_parent( $source, $lang, (string) ( $fields['parent_mode'] ?? '' ) );
+		$is_home = self::is_home( $source->ID );
+		if ( ! $parent['ok'] ) {
+			return new WP_Error( 'ept_parent', $parent['message'], array( 'status' => 409 ) );
+		}
+
+		// Texts for the Rebuilder: translation, else the original; noise attributes removed.
+		$elements  = Content::elements( $source->ID );
+		$extracted = Content::extractor()->extract( $elements );
+		$saved     = Translations::strings( $source->ID, $lang );
+		$texts     = array();
+		$missing   = 0;
+		foreach ( $extracted['strings'] as $item ) {
+			if ( $item['dynamic'] ) {
+				continue;
+			}
+			$entry = $saved[ $item['key'] ] ?? null;
+			$final = $item['text'];
+			if ( is_array( $entry ) && Translations::STATUS_TRANSLATED === ( $entry['s'] ?? '' ) && '' !== (string) $entry['t'] ) {
+				$final = (string) $entry['t'];
+			} elseif ( ! is_array( $entry ) ) {
+				++$missing;
+			}
+			$final = Widget_Map::CODE === $item['format'] ? $final : Html_Tools::strip_noise( $final );
+			if ( $final !== $item['text'] ) {
+				$texts[ $item['key'] ] = $final;
+			}
+		}
+		if ( $missing > 0 && ! $confirm ) {
+			return new WP_Error(
+				'ept_incomplete',
+				sprintf(
+					/* translators: %d: number of texts. */
+					_n( 'Manca %d traduzione: il testo resterà in italiano e la pagina sarà marcata "incompleta".', 'Mancano %d traduzioni: i testi resteranno in italiano e la pagina sarà marcata "incompleta".', $missing, 'ept' ),
+					$missing
+				),
+				array(
+					'status'  => 409,
+					'missing' => $missing,
+				)
+			);
+		}
+
+		$rebuilt = Content::rebuilder()->apply( $elements, $texts );
+
+		// Create or update the WordPress page.
+		$target_id   = self::target_id( $source->ID, $lang );
+		$first_build = null === $target_id;
+		if ( null === $target_id && $is_home ) {
+			$target_id = (int) $root;
+		}
+		$title = '' !== (string) ( $fields['title'] ?? '' ) ? (string) $fields['title'] : $source->post_title;
+		$slug  = $is_home ? (string) Languages::get( $lang )['prefix'] : sanitize_title( '' !== (string) ( $fields['slug'] ?? '' ) ? (string) $fields['slug'] : $title );
+
+		$postarr = array(
+			'post_type'      => 'page',
+			'post_title'     => $title,
+			'post_name'      => $slug,
+			'post_parent'    => $is_home ? 0 : (int) $parent['id'],
+			'menu_order'     => $source->menu_order,
+			'comment_status' => $source->comment_status,
+			'ping_status'    => $source->ping_status,
+		);
+		$created = false;
+		if ( null === $target_id ) {
+			$wants_publish          = 'publish' === ( $fields['status'] ?? 'draft' ) && current_user_can( 'publish_pages' );
+			$postarr['post_status'] = $wants_publish ? 'publish' : 'draft';
+			$postarr['post_author'] = get_current_user_id();
+			$target_id              = wp_insert_post( wp_slash( $postarr ), true );
+			if ( is_wp_error( $target_id ) ) {
+				return $target_id;
+			}
+			$created = true;
+		} else {
+			$current = get_post( $target_id );
+			if ( $is_home && $current && 'publish' !== $current->post_status && 'publish' === ( $fields['status'] ?? 'draft' ) && current_user_can( 'publish_pages' ) ) {
+				$postarr['post_status'] = 'publish';
+			}
+			self::save_revision( (int) $target_id );
+			$postarr['ID'] = $target_id;
+			$result        = wp_update_post( wp_slash( $postarr ), true );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+		$target_id = (int) $target_id;
+		$created   = $created || $first_build;
+
+		Translations::link( $source->ID, $lang, $target_id );
+		self::copy_page_meta( $source->ID, $target_id );
+
+		// Save through Elementor's document API: same sanitisation as the editor, CSS regenerated.
+		$settings = get_post_meta( $source->ID, '_elementor_page_settings', true );
+		$document = \Elementor\Plugin::$instance->documents->get( $target_id, false );
+		if ( ! $document ) {
+			return new WP_Error( 'ept_document', __( 'Elementor non riesce ad aprire la pagina tradotta.', 'ept' ), array( 'status' => 500 ) );
+		}
+		$ok = $document->save(
+			array(
+				'elements' => $rebuilt['elements'],
+				'settings' => is_array( $settings ) ? $settings : array(),
+			)
+		);
+		if ( false === $ok ) {
+			return new WP_Error( 'ept_save', __( 'Elementor non ha salvato la pagina tradotta (permessi insufficienti?).', 'ept' ), array( 'status' => 403 ) );
+		}
+
+		update_post_meta( $target_id, Translations::META_SOURCE_HASH, Translations::data_hash( $source->ID ) );
+		update_post_meta( $target_id, Translations::META_OUTPUT_HASH, Translations::data_hash( $target_id ) );
+		if ( $missing > 0 ) {
+			update_post_meta( $target_id, Translations::META_INCOMPLETE, $missing );
+		} else {
+			delete_post_meta( $target_id, Translations::META_INCOMPLETE );
+		}
+
+		/**
+		 * After a translated page has been created or updated.
+		 *
+		 * @param int    $target_id Translated page ID.
+		 * @param int    $source_id Italian page ID.
+		 * @param string $lang      Language code.
+		 * @param bool   $created   Whether the page was just created.
+		 */
+		do_action( 'ept_after_sync', $target_id, $source->ID, $lang, $created );
+		self::purge_cache( $target_id );
+
+		$target = get_post( $target_id );
+		return array(
+			'created'   => $created,
+			'missing'   => $missing,
+			'sanitized' => $draft['sanitized'],
+			'failed'    => $rebuilt['failed'],
+			'target'    => $target ? self::target_info( $target ) : null,
+		);
+	}
+
+	/**
+	 * Copy page-level meta that is not part of Elementor's data.
+	 *
+	 * @param int $source_id Italian page ID.
+	 * @param int $target_id Translated page ID.
+	 */
+	private static function copy_page_meta( int $source_id, int $target_id ): void {
+		update_post_meta( $target_id, '_elementor_edit_mode', 'builder' );
+		foreach ( array( '_wp_page_template', '_elementor_template_type', '_thumbnail_id' ) as $key ) {
+			$value = get_post_meta( $source_id, $key, true );
+			if ( '' !== $value && false !== $value ) {
+				update_post_meta( $target_id, $key, $value );
+			} else {
+				delete_post_meta( $target_id, $key );
+			}
+		}
+	}
+
+	/**
+	 * Store a revision of the translated page before it is overwritten.
+	 *
+	 * @param int $post_id Translated page ID.
+	 */
+	private static function save_revision( int $post_id ): void {
+		if ( ! wp_revisions_enabled( get_post( $post_id ) ) ) {
+			return;
+		}
+		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
+		wp_save_post_revision( $post_id );
+		remove_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
+	}
+
+	/**
+	 * Purge SiteGround's dynamic cache for the page (verified: sg_cachepress_purge_cache( $url )).
+	 *
+	 * @param int $post_id Page ID.
+	 */
+	private static function purge_cache( int $post_id ): void {
+		if ( function_exists( 'sg_cachepress_purge_cache' ) && 'publish' === get_post_status( $post_id ) ) {
+			sg_cachepress_purge_cache( (string) get_permalink( $post_id ) );
+		}
+	}
+}

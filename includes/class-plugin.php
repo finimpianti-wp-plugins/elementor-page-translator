@@ -26,6 +26,11 @@ final class Plugin {
 		if ( is_admin() ) {
 			Admin\Notices::init();
 			Admin\Settings_Page::init();
+			Admin\Census_Page::init();
+		}
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command( 'ept census', Cli\Census_Command::class );
 		}
 	}
 }

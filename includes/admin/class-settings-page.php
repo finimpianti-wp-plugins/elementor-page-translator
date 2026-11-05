@@ -1,0 +1,479 @@
+<?php
+/**
+ * Settings → Traduzioni: languages, root pages, general options.
+ *
+ * All writes go through admin-post.php with a nonce and the manage_options capability.
+ *
+ * @package EPT
+ */
+
+namespace EPT\Admin;
+
+use EPT\Language_Rules;
+use EPT\Languages;
+use EPT\Root_Pages;
+use EPT\Settings;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Settings page.
+ */
+final class Settings_Page {
+
+	public const SLUG = 'ept-settings';
+	public const CAP  = 'manage_options';
+
+	/**
+	 * Hooks.
+	 */
+	public static function init(): void {
+		add_action( 'admin_menu', array( self::class, 'menu' ) );
+		add_action( 'admin_post_ept_add_language', array( self::class, 'handle_add_language' ) );
+		add_action( 'admin_post_ept_save_languages', array( self::class, 'handle_save_languages' ) );
+		add_action( 'admin_post_ept_delete_language', array( self::class, 'handle_delete_language' ) );
+		add_action( 'admin_post_ept_install_language_pack', array( self::class, 'handle_install_language_pack' ) );
+		add_action( 'admin_post_ept_save_general', array( self::class, 'handle_save_general' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( EPT_FILE ), array( self::class, 'plugin_links' ) );
+	}
+
+	/**
+	 * Menu entry.
+	 */
+	public static function menu(): void {
+		add_options_page(
+			__( 'Traduzioni', 'ept' ),
+			__( 'Traduzioni', 'ept' ),
+			self::CAP,
+			self::SLUG,
+			array( self::class, 'render' )
+		);
+	}
+
+	/**
+	 * "Impostazioni" link in the plugins list.
+	 *
+	 * @param array<string,string> $links Links.
+	 * @return array<string,string>
+	 */
+	public static function plugin_links( $links ) {
+		array_unshift( $links, '<a href="' . esc_url( self::url() ) . '">' . esc_html__( 'Impostazioni', 'ept' ) . '</a>' );
+		return $links;
+	}
+
+	/**
+	 * Page URL.
+	 */
+	public static function url(): string {
+		return admin_url( 'options-general.php?page=' . self::SLUG );
+	}
+
+	/**
+	 * Render the page.
+	 */
+	public static function render(): void {
+		if ( ! current_user_can( self::CAP ) ) {
+			wp_die( esc_html__( 'Non hai i permessi per accedere a questa pagina.', 'ept' ) );
+		}
+		$default   = Languages::default_language();
+		$languages = Languages::all();
+		$locales   = Languages::available_locales();
+		$general   = Settings::all();
+		?>
+		<div class="wrap ept-settings">
+			<h1><?php esc_html_e( 'Traduzioni', 'ept' ); ?></h1>
+
+			<h2><?php esc_html_e( 'Lingua predefinita', 'ept' ); ?></h2>
+			<p>
+				<?php
+				printf(
+					/* translators: 1: language name, 2: code, 3: locale. */
+					esc_html__( '%1$s (codice %2$s, locale %3$s). Le pagine in questa lingua restano sugli URL attuali, senza prefisso.', 'ept' ),
+					'<strong>' . esc_html( $default['name'] ) . '</strong>',
+					'<code>' . esc_html( $default['code'] ) . '</code>',
+					'<code>' . esc_html( $default['locale'] ) . '</code>'
+				);
+				?>
+			</p>
+
+			<h2><?php esc_html_e( 'Lingue aggiuntive', 'ept' ); ?></h2>
+			<?php if ( ! $languages ) : ?>
+				<p><?php esc_html_e( 'Nessuna lingua aggiuntiva configurata.', 'ept' ); ?></p>
+			<?php else : ?>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="ept_save_languages">
+					<?php wp_nonce_field( 'ept_save_languages' ); ?>
+					<table class="widefat striped ept-languages">
+						<thead>
+							<tr>
+								<th scope="col"><?php esc_html_e( 'Nome nativo', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Codice', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Locale', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Prefisso URL', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Attiva', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Pubblica', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Ordine', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Pagina radice', 'ept' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Pacchetto lingua WordPress', 'ept' ); ?></th>
+								<th scope="col"><span class="screen-reader-text"><?php esc_html_e( 'Azioni', 'ept' ); ?></span></th>
+							</tr>
+						</thead>
+						<tbody>
+						<?php foreach ( $languages as $code => $lang ) : ?>
+							<?php $field = 'languages[' . $code . ']'; ?>
+							<tr>
+								<td><input type="text" class="regular-text" style="width:12em" name="<?php echo esc_attr( $field ); ?>[name]" value="<?php echo esc_attr( $lang['name'] ); ?>" aria-label="<?php esc_attr_e( 'Nome nativo', 'ept' ); ?>"></td>
+								<td><code><?php echo esc_html( $code ); ?></code></td>
+								<td><code><?php echo esc_html( $lang['locale'] ); ?></code></td>
+								<td>/<input type="text" style="width:6em" name="<?php echo esc_attr( $field ); ?>[prefix]" value="<?php echo esc_attr( $lang['prefix'] ); ?>" aria-label="<?php esc_attr_e( 'Prefisso URL', 'ept' ); ?>">/</td>
+								<td><input type="checkbox" name="<?php echo esc_attr( $field ); ?>[active]" value="1" <?php checked( ! empty( $lang['active'] ) ); ?> aria-label="<?php esc_attr_e( 'Attiva', 'ept' ); ?>"></td>
+								<td><input type="checkbox" name="<?php echo esc_attr( $field ); ?>[public]" value="1" <?php checked( ! empty( $lang['public'] ) ); ?> aria-label="<?php esc_attr_e( 'Pubblica', 'ept' ); ?>"></td>
+								<td><input type="number" style="width:5em" name="<?php echo esc_attr( $field ); ?>[order]" value="<?php echo esc_attr( (string) (int) $lang['order'] ); ?>" aria-label="<?php esc_attr_e( 'Ordine', 'ept' ); ?>"></td>
+								<td><?php self::render_root_page_cell( $lang ); ?></td>
+								<td><?php self::render_language_pack_cell( (string) $lang['locale'] ); ?></td>
+								<td>
+									<?php if ( empty( $lang['active'] ) ) : ?>
+										<a class="button-link-delete" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=ept_delete_language&code=' . rawurlencode( $code ) ), 'ept_delete_language_' . $code ) ); ?>" onclick="return confirm('<?php echo esc_js( __( 'Rimuovere questa lingua dalla configurazione? Le pagine non vengono eliminate.', 'ept' ) ); ?>');"><?php esc_html_e( 'Rimuovi', 'ept' ); ?></a>
+									<?php endif; ?>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+					<p class="description">
+						<?php esc_html_e( '"Attiva": la lingua si può tradurre e ha la sua pagina radice. "Pubblica": le pagine sono visibili ai visitatori, nel selettore, negli hreflang e nella sitemap. Una lingua attiva ma non pubblica è visibile solo agli utenti connessi con permesso di modifica.', 'ept' ); ?>
+					</p>
+					<p class="description">
+						<?php esc_html_e( 'Cambiare il prefisso di una lingua attiva cambia lo slug della sua pagina radice, e quindi l\'URL di tutte le pagine di quella lingua.', 'ept' ); ?>
+					</p>
+					<?php submit_button( __( 'Salva lingue', 'ept' ) ); ?>
+				</form>
+			<?php endif; ?>
+
+			<h2><?php esc_html_e( 'Aggiungi lingua', 'ept' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="ept_add_language">
+				<?php wp_nonce_field( 'ept_add_language' ); ?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="ept-locale"><?php esc_html_e( 'Lingua (locale WordPress)', 'ept' ); ?></label></th>
+						<td>
+							<select id="ept-locale" name="locale" required>
+								<option value=""><?php esc_html_e( '— Scegli —', 'ept' ); ?></option>
+								<?php foreach ( $locales as $locale => $native ) : ?>
+									<?php
+									if ( $locale === $default['locale'] ) {
+										continue;
+									}
+									?>
+									<option value="<?php echo esc_attr( $locale ); ?>"><?php echo esc_html( $native . ' — ' . $locale ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description"><?php esc_html_e( 'Per l\'inglese scegli en_GB (britannico) o en_US (americano). Le lingue scritte da destra a sinistra non sono disponibili.', 'ept' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ept-code"><?php esc_html_e( 'Codice', 'ept' ); ?></label></th>
+						<td><input id="ept-code" type="text" name="code" style="width:8em" pattern="[a-z]{2,3}(-[a-z0-9]{2,8})?">
+							<p class="description"><?php esc_html_e( 'Facoltativo: se vuoto si ricava dal locale (en_GB → en).', 'ept' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ept-name"><?php esc_html_e( 'Nome nativo', 'ept' ); ?></label></th>
+						<td><input id="ept-name" type="text" name="name" class="regular-text">
+							<p class="description"><?php esc_html_e( 'Facoltativo: se vuoto si usa il nome fornito da WordPress (es. "English (UK)"). Consigliato un nome breve, es. "English".', 'ept' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ept-prefix"><?php esc_html_e( 'Prefisso URL', 'ept' ); ?></label></th>
+						<td>/<input id="ept-prefix" type="text" name="prefix" style="width:8em">/
+							<p class="description"><?php esc_html_e( 'Facoltativo: se vuoto è uguale al codice.', 'ept' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Opzioni', 'ept' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="active" value="1" checked> <?php esc_html_e( 'Attiva subito (crea la pagina radice in bozza)', 'ept' ); ?></label><br>
+							<label><input type="checkbox" name="language_pack" value="1"> <?php esc_html_e( 'Scarica il pacchetto lingua di WordPress (testi di tema e plugin tradotti)', 'ept' ); ?></label>
+						</td>
+					</tr>
+				</table>
+				<?php submit_button( __( 'Aggiungi lingua', 'ept' ), 'secondary' ); ?>
+			</form>
+
+			<h2><?php esc_html_e( 'Generali', 'ept' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="ept_save_general">
+				<?php wp_nonce_field( 'ept_save_general' ); ?>
+				<label>
+					<input type="checkbox" name="delete_data_on_uninstall" value="1" <?php checked( ! empty( $general['delete_data_on_uninstall'] ) ); ?>>
+					<?php esc_html_e( 'Alla disinstallazione elimina i dati del plugin (impostazioni, collegamenti tra traduzioni, memoria traduzioni). Le pagine tradotte non vengono mai eliminate.', 'ept' ); ?>
+				</label>
+				<?php submit_button( __( 'Salva', 'ept' ), 'secondary' ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Root page cell: title, status and edit link.
+	 *
+	 * @param array<string,mixed> $lang Language.
+	 */
+	private static function render_root_page_cell( array $lang ): void {
+		$page = $lang['root_page_id'] ? get_post( (int) $lang['root_page_id'] ) : null;
+		if ( ! $page ) {
+			echo '<em>' . esc_html__( 'Non ancora creata (si crea attivando la lingua)', 'ept' ) . '</em>';
+			return;
+		}
+		$status = get_post_status_object( $page->post_status );
+		printf(
+			'<a href="%1$s">/%2$s/</a> <span class="description">(%3$s)</span>',
+			esc_url( (string) get_edit_post_link( $page->ID ) ),
+			esc_html( $page->post_name ),
+			esc_html( $status ? $status->label : $page->post_status )
+		);
+	}
+
+	/**
+	 * Language pack cell.
+	 *
+	 * @param string $locale Locale.
+	 */
+	private static function render_language_pack_cell( string $locale ): void {
+		if ( Languages::is_language_pack_installed( $locale ) ) {
+			echo esc_html__( 'Installato', 'ept' );
+			return;
+		}
+		printf(
+			'<a class="button button-small" href="%1$s">%2$s</a>',
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=ept_install_language_pack&locale=' . rawurlencode( $locale ) ), 'ept_install_language_pack_' . $locale ) ),
+			esc_html__( 'Scarica', 'ept' )
+		);
+	}
+
+	/**
+	 * Common permission + nonce check.
+	 *
+	 * @param string $nonce_action Nonce action.
+	 */
+	private static function guard( string $nonce_action ): void {
+		if ( ! current_user_can( self::CAP ) ) {
+			wp_die( esc_html__( 'Non hai i permessi per eseguire questa operazione.', 'ept' ), 403 );
+		}
+		check_admin_referer( $nonce_action );
+	}
+
+	/**
+	 * Redirect back to the settings page.
+	 */
+	private static function back(): void {
+		wp_safe_redirect( self::url() );
+		exit;
+	}
+
+	/**
+	 * Add a language.
+	 */
+	public static function handle_add_language(): void {
+		self::guard( 'ept_add_language' );
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in guard().
+		$locale = sanitize_text_field( wp_unslash( $_POST['locale'] ?? '' ) );
+		$code   = sanitize_key( wp_unslash( $_POST['code'] ?? '' ) );
+		$name   = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
+		$prefix = sanitize_title( wp_unslash( $_POST['prefix'] ?? '' ) );
+		$active = ! empty( $_POST['active'] );
+		$pack   = ! empty( $_POST['language_pack'] );
+		// phpcs:enable
+
+		$input = array(
+			'locale' => $locale,
+			'code'   => '' !== $code ? $code : Language_Rules::code_from_locale( $locale ),
+			'name'   => '' !== $name ? $name : Languages::native_name( $locale ),
+			'prefix' => $prefix,
+			'active' => false,
+			'public' => false,
+			'order'  => count( Languages::all() ) + 1,
+		);
+
+		list( $entry, $errors ) = Language_Rules::normalize( $input, Languages::all(), Languages::default_code() );
+		if ( Languages::default_language()['locale'] === $locale ) {
+			$errors[] = 'code_is_default';
+		}
+		if ( $errors ) {
+			foreach ( array_unique( $errors ) as $error ) {
+				Notices::add( 'error', Languages::error_message( $error ) );
+			}
+			self::back();
+		}
+
+		Languages::put( $entry );
+		Notices::add(
+			'success',
+			/* translators: %s: language name. */
+			sprintf( __( 'Lingua %s aggiunta.', 'ept' ), $entry['name'] )
+		);
+
+		if ( $active ) {
+			self::activate_language( $entry );
+		}
+		if ( $pack ) {
+			self::install_language_pack( $entry['locale'] );
+		}
+		self::back();
+	}
+
+	/**
+	 * Save the languages table.
+	 */
+	public static function handle_save_languages(): void {
+		self::guard( 'ept_save_languages' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified in guard(); each field is sanitised below.
+		$rows = isset( $_POST['languages'] ) && is_array( $_POST['languages'] ) ? wp_unslash( $_POST['languages'] ) : array();
+
+		foreach ( Languages::all() as $code => $old ) {
+			$row = isset( $rows[ $code ] ) && is_array( $rows[ $code ] ) ? $rows[ $code ] : array();
+
+			$input = array_merge(
+				$old,
+				array(
+					'name'   => sanitize_text_field( (string) ( $row['name'] ?? '' ) ),
+					'prefix' => sanitize_title( (string) ( $row['prefix'] ?? '' ) ),
+					'active' => ! empty( $row['active'] ),
+					'public' => ! empty( $row['public'] ),
+					'order'  => (int) ( $row['order'] ?? 0 ),
+				)
+			);
+
+			$others = Languages::all();
+			unset( $others[ $code ] );
+			list( $entry, $errors ) = Language_Rules::normalize( $input, $others, Languages::default_code() );
+			if ( $errors ) {
+				foreach ( array_unique( $errors ) as $error ) {
+					/* translators: 1: language name, 2: error message. */
+					Notices::add( 'error', sprintf( __( '%1$s: %2$s', 'ept' ), $old['name'], Languages::error_message( $error ) ) );
+				}
+				continue;
+			}
+
+			$was_active     = ! empty( $old['active'] );
+			$prefix_changed = $entry['prefix'] !== $old['prefix'];
+
+			if ( $entry['active'] && ( ! $was_active || $prefix_changed ) ) {
+				// Restores the previous entry by itself if the root page cannot be set up.
+				self::activate_language( $entry );
+			} else {
+				Languages::put( $entry );
+			}
+		}
+
+		Notices::add( 'success', __( 'Lingue salvate.', 'ept' ) );
+		self::back();
+	}
+
+	/**
+	 * Activate a language (or apply a new prefix) and make sure its root page exists.
+	 * On failure the previous configuration is kept.
+	 *
+	 * @param array<string,mixed> $entry Desired entry, with active = true.
+	 */
+	private static function activate_language( array $entry ): bool {
+		$previous        = Languages::get( (string) $entry['code'] );
+		$entry['active'] = true;
+		Languages::put( $entry );
+
+		$result = Root_Pages::ensure( (string) $entry['code'] );
+		if ( is_wp_error( $result ) ) {
+			if ( null !== $previous ) {
+				$previous['root_page_id'] = Languages::get( (string) $entry['code'] )['root_page_id'];
+				Languages::put( $previous );
+			}
+			Notices::add(
+				'error',
+				/* translators: 1: language name, 2: error message. */
+				sprintf( __( 'Impossibile attivare %1$s: %2$s', 'ept' ), $entry['name'], $result->get_error_message() )
+			);
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Remove an inactive language from the configuration.
+	 */
+	public static function handle_delete_language(): void {
+		$code = sanitize_key( wp_unslash( $_GET['code'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified in guard().
+		self::guard( 'ept_delete_language_' . $code );
+
+		$lang = Languages::get( $code );
+		if ( null === $lang ) {
+			self::back();
+		}
+		if ( ! empty( $lang['active'] ) ) {
+			Notices::add( 'error', __( 'Disattiva la lingua prima di rimuoverla.', 'ept' ) );
+			self::back();
+		}
+		Languages::remove( $code );
+		Notices::add(
+			'success',
+			/* translators: %s: language name. */
+			sprintf( __( 'Lingua %s rimossa dalla configurazione. Le sue pagine, compresa la pagina radice, non sono state eliminate.', 'ept' ), $lang['name'] )
+		);
+		self::back();
+	}
+
+	/**
+	 * Download the WordPress language pack of a configured locale.
+	 */
+	public static function handle_install_language_pack(): void {
+		$locale = sanitize_text_field( wp_unslash( $_GET['locale'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified in guard().
+		self::guard( 'ept_install_language_pack_' . $locale );
+		$known = array_column( Languages::all(), 'locale' );
+		if ( in_array( $locale, $known, true ) ) {
+			self::install_language_pack( $locale );
+		}
+		self::back();
+	}
+
+	/**
+	 * Install a language pack and report the outcome.
+	 *
+	 * @param string $locale Locale.
+	 */
+	private static function install_language_pack( string $locale ): void {
+		if ( Languages::is_language_pack_installed( $locale ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'install_languages' ) ) {
+			Notices::add( 'error', __( 'Non hai il permesso di installare pacchetti lingua.', 'ept' ) );
+			return;
+		}
+		require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		if ( ! WP_Filesystem() ) {
+			Notices::add( 'error', __( 'WordPress non può scrivere i file della lingua (accesso al filesystem non disponibile).', 'ept' ) );
+			return;
+		}
+		$result = wp_download_language_pack( $locale );
+		if ( $result ) {
+			/* translators: %s: locale. */
+			Notices::add( 'success', sprintf( __( 'Pacchetto lingua %s installato.', 'ept' ), $locale ) );
+		} else {
+			/* translators: %s: locale. */
+			Notices::add( 'error', sprintf( __( 'Download del pacchetto lingua %s non riuscito.', 'ept' ), $locale ) );
+		}
+	}
+
+	/**
+	 * Save general settings.
+	 */
+	public static function handle_save_general(): void {
+		self::guard( 'ept_save_general' );
+		Settings::update(
+			array(
+				'delete_data_on_uninstall' => ! empty( $_POST['delete_data_on_uninstall'] ), // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in guard().
+			)
+		);
+		Notices::add( 'success', __( 'Impostazioni salvate.', 'ept' ) );
+		self::back();
+	}
+}

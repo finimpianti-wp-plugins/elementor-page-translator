@@ -190,8 +190,28 @@ final class Translation_Service {
 				$state = ( $entry['h'] ?? '' ) === $item['hash'] ? 'translated' : 'modified';
 				$old   = 'modified' === $state ? Html_Tools::strip_noise( (string) ( $entry['o'] ?? '' ) ) : '';
 			}
+			// Simplified view: wrapper hidden, <br> as line breaks (only when original and translation share the wrapper).
+			$original_html = Html_Tools::strip_noise( $item['text'] );
+			$translation   = is_array( $entry ) ? (string) ( $entry['t'] ?? '' ) : '';
+			$space         = 'text-editor' !== $item['widget'];
+			$simple        = Widget_Map::CODE === $item['format'] || $item['dynamic'] ? null : Simple_Text::analyze( $original_html, $space );
+			$translation_s = '';
+			if ( null !== $simple && '' !== $translation ) {
+				$t_simple = Simple_Text::analyze( Html_Tools::strip_noise( $translation ), $space );
+				if ( null === $t_simple || $t_simple['prefix'] !== $simple['prefix'] || $t_simple['suffix'] !== $simple['suffix'] ) {
+					$simple = null;
+				} else {
+					$translation_s = $t_simple['text'];
+				}
+			}
 			$row    = array(
 				'key'          => $item['key'],
+				'simple'       => null === $simple ? null : array(
+					'prefix'      => $simple['prefix'],
+					'suffix'      => $simple['suffix'],
+					'original'    => $simple['text'],
+					'translation' => $translation_s,
+				),
 				'group'        => array_search( $item['group'], $groups, true ) + 1,
 				'widget'       => $item['widget'],
 				'widget_label' => $labels[ $item['widget'] ] ?? $item['widget'],
@@ -199,8 +219,8 @@ final class Translation_Service {
 				'format'       => $item['format'],
 				'source'       => $item['source'],
 				'dynamic'      => $item['dynamic'],
-				'original'     => Html_Tools::strip_noise( $item['text'] ),
-				'translation'  => is_array( $entry ) ? (string) ( $entry['t'] ?? '' ) : '',
+				'original'     => $original_html,
+				'translation'  => $translation,
 				'status'       => is_array( $entry ) ? (string) ( $entry['s'] ?? '' ) : '',
 				'state'        => $state,
 				'old_original' => $old,

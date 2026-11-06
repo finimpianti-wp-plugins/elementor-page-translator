@@ -21,6 +21,8 @@
 	let slugTouched = false;
 	let onlyTodo = false;
 	let busy = false;
+	let allSame = false;
+	let bulkBackup = null; // key => previous choice, while "all same as original" is checked
 	const rowState = {}; // key => { t, s, ok }
 
 	/* ------------------------------------------------------------------ */
@@ -123,9 +125,17 @@
 		data.strings.forEach( ( row ) => {
 			// Only "same" and "excluded" are row choices; "translated" is implied by a non-empty text.
 			const choice = row.status === 'same' || row.status === 'excluded' ? row.status : '';
-			rowState[ row.key ] = { t: row.translation, s: choice, ok: row.state !== 'modified' };
+			rowState[ row.key ] = {
+				t: row.translation,
+				s: choice,
+				ok: row.state !== 'modified',
+				simple: !! row.simple,
+				plain: row.simple ? row.simple.translation : '',
+			};
 		} );
 		slugTouched = data.page.slug !== '';
+		allSame = false;
+		bulkBackup = null;
 		setDirty( false );
 	}
 
@@ -138,6 +148,7 @@
 			renderFooter()
 		);
 		updateProgress();
+		applyFilter();
 	}
 
 	function renderHeader() {
@@ -301,8 +312,44 @@
 				} ),
 				' ' + __( 'Mostra solo i testi da tradurre', 'ept' ),
 			] ),
-			el( 'span', { id: 'ept-dirty', className: 'ept-tag ept-tag--warn', hidden: true, text: __( 'Modifiche non salvate', 'ept' ) } ),
+			el( 'label', {}, [
+				el( 'input', { type: 'checkbox', id: 'ept-all-same', checked: allSame, onChange: ( event ) => setAllSame( event.target.checked ) } ),
+				' ' + __( 'Tutti i testi uguali all\'originale', 'ept' ),
+			] ),
+			el( 'span', { id: 'ept-dirty', className: 'ept-tag ept-tag--warn', hidden: ! dirty, text: __( 'Modifiche non salvate', 'ept' ) } ),
 		] );
+	}
+
+	function setAllSame( checked ) {
+		const rows = data.strings.filter( ( row ) => ! row.dynamic && rowState[ row.key ].s !== 'excluded' );
+		if ( checked ) {
+			const translated = rows.filter( ( row ) => rowState[ row.key ].s === '' && rowState[ row.key ].t.trim() !== '' );
+			let includeTranslated = true;
+			if ( translated.length ) {
+				includeTranslated = window.confirm(
+					sprintf( _n( '%d testo è già tradotto. OK: rendi uguale all\'originale anche quello. Annulla: solo i testi senza traduzione.', '%d testi sono già tradotti. OK: rendi uguali all\'originale anche quelli. Annulla: solo i testi senza traduzione.', translated.length, 'ept' ), translated.length )
+				);
+			}
+			bulkBackup = {};
+			rows.forEach( ( row ) => {
+				const st = rowState[ row.key ];
+				if ( ! includeTranslated && st.t.trim() !== '' ) {
+					return;
+				}
+				bulkBackup[ row.key ] = { s: st.s, ok: st.ok };
+				st.s = 'same';
+				st.ok = true;
+			} );
+		} else if ( bulkBackup ) {
+			Object.entries( bulkBackup ).forEach( ( [ key, previous ] ) => {
+				rowState[ key ].s = previous.s;
+				rowState[ key ].ok = previous.ok;
+			} );
+			bulkBackup = null;
+		}
+		allSame = checked;
+		dirty = true;
+		render();
 	}
 
 	function renderStrings() {
@@ -326,6 +373,15 @@
 		return wrap;
 	}
 
+	function rebuildSimple( row, plain ) {
+		const escaped = String( plain ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /\r\n|\r|\n/g, '<br>' );
+		return row.simple.prefix + escaped + row.simple.suffix;
+	}
+
+	function shownOriginal( row, st ) {
+		return st.simple ? row.simple.original : row.original;
+	}
+
 	function renderRow( row ) {
 		const st = rowState[ row.key ];
 		const id = 'ept-t-' + row.key.replace( /[^a-zA-Z0-9_-]/g, '_' );
@@ -340,8 +396,9 @@
 		] );
 		rowEl.appendChild( meta );
 
+		const htmlView = ! st.simple && row.format !== 'text';
 		const original = el( 'div', { className: 'ept-original' }, [
-			el( 'div', { className: 'ept-original-text' + ( row.format !== 'text' ? ' ept-code' : '' ), text: row.original || '—' } ),
+			el( 'div', { className: 'ept-original-text' + ( htmlView ? ' ept-code' : '' ), text: shownOriginal( row, st ) || '—' } ),
 		] );
 		if ( row.state === 'modified' && row.old_original ) {
 			original.appendChild( el( 'details', {}, [ el( 'summary', { text: __( 'Originale precedente', 'ept' ) } ), el( 'div', { className: 'ept-code', text: row.old_original } ) ] ) );
@@ -355,23 +412,30 @@
 			return rowEl;
 		}
 
-		const long = row.format !== 'text' || row.original.length > LONG_TEXT;
+		const shown = shownOriginal( row, st );
+		const long = htmlView || shown.length > LONG_TEXT || shown.includes( '\n' );
 		const input = el( long ? 'textarea' : 'input', {
 			id,
 			className: 'large-text',
-			rows: long ? Math.min( 8, Math.max( 2, Math.ceil( row.original.length / 90 ) ) ) : null,
+			rows: long ? Math.min( 8, Math.max( 2, Math.ceil( shown.length / 90 ), shown.split( '\n' ).length ) ) : null,
 			type: long ? null : 'text',
-			'aria-label': sprintf( __( 'Traduzione di: %s', 'ept' ), row.original.slice( 0, 80 ) ),
+			'aria-label': sprintf( __( 'Traduzione di: %s', 'ept' ), shown.slice( 0, 80 ) ),
 			disabled: st.s === 'same' || st.s === 'excluded',
 			onInput: ( event ) => {
-				st.t = event.target.value;
+				const value = event.target.value;
+				if ( st.simple ) {
+					st.plain = value;
+					st.t = value.trim() === '' ? '' : rebuildSimple( row, value );
+				} else {
+					st.t = value;
+				}
 				st.ok = true;
 				setDirty( true );
 				checkTags( row, rowEl );
 				updateProgress();
 			},
 		} );
-		input.value = st.s === 'same' ? row.original : st.t;
+		input.value = st.s === 'same' ? shown : ( st.simple ? st.plain : st.t );
 		side.appendChild( input );
 
 		const warning = el( 'p', { className: 'ept-warning ept-tags-warning', hidden: true, text: __( 'Attenzione: il numero di tag HTML è diverso dall\'originale.', 'ept' ) } );
@@ -386,8 +450,8 @@
 					onChange: ( event ) => {
 						st.s = event.target.checked ? 'same' : '';
 						st.ok = true;
-						input.disabled = event.target.checked || st.s === 'excluded';
-						input.value = event.target.checked ? row.original : st.t;
+						input.disabled = event.target.checked;
+						input.value = event.target.checked ? shown : ( st.simple ? st.plain : st.t );
 						setDirty( true );
 						updateProgress();
 					},
@@ -419,8 +483,11 @@
 				className: 'button button-small',
 				text: __( 'Copia originale', 'ept' ),
 				onClick: () => {
-					input.value = row.original;
 					st.t = row.original;
+					if ( st.simple ) {
+						st.plain = row.simple.original;
+					}
+					input.value = shown;
 					st.ok = true;
 					setDirty( true );
 					checkTags( row, rowEl );
@@ -428,6 +495,19 @@
 				},
 			} )
 		);
+		if ( st.simple ) {
+			controls.appendChild(
+				el( 'button', {
+					type: 'button',
+					className: 'button-link',
+					text: __( 'Mostra HTML', 'ept' ),
+					onClick: () => {
+						st.simple = false;
+						rowEl.replaceWith( renderRow( row ) );
+					},
+				} )
+			);
+		}
 		if ( row.state === 'modified' ) {
 			controls.appendChild(
 				el( 'button', {
@@ -454,7 +534,7 @@
 		if ( ! warning ) {
 			return;
 		}
-		warning.hidden = st.s !== '' || st.t.trim() === '' || tagCounts( row.original ) === tagCounts( st.t );
+		warning.hidden = st.simple || st.s !== '' || st.t.trim() === '' || tagCounts( row.original ) === tagCounts( st.t );
 	}
 
 	function applyFilter() {

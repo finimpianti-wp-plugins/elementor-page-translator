@@ -30,8 +30,14 @@ final class Html_Tools {
 			return $html;
 		}
 		$names = implode( '|', array_map( static fn( string $a ): string => preg_quote( $a, '/' ), self::NOISE_ATTRIBUTES ) );
-		// A bare <span> may remain: harmless, and unwrapping nested spans safely needs a parser.
-		return (string) preg_replace( '/\s(?:' . $names . ')\s*=\s*(["\']).*?\1/is', '', $html );
+		$html  = (string) preg_replace( '/\s(?:' . $names . ')\s*=\s*(["\']).*?\1/is', '', $html );
+		// Spans left completely empty (no attributes, no content) carry nothing: drop them.
+		// A non-empty bare <span> may remain: harmless, and unwrapping nested spans needs a parser.
+		do {
+			$before = $html;
+			$html   = str_replace( '<span></span>', '', $html );
+		} while ( $html !== $before );
+		return $html;
 	}
 
 	/**

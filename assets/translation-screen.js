@@ -260,11 +260,22 @@
 		grid.appendChild( field( null, __( 'Genitore', 'ept' ), parentBox ) );
 		grid.appendChild( field( null, __( 'Indirizzo', 'ept' ), el( 'code', { id: 'ept-url' } ) ) );
 
-		// Status.
+		// Status of the translated page: chosen at creation and changeable at every update.
+		const status = el( 'select', {
+			id: 'ept-status',
+			onChange: ( event ) => {
+				page.status = event.target.value;
+				setDirty( true );
+			},
+		} );
+		status.appendChild( el( 'option', { value: 'draft', selected: page.status !== 'publish', text: __( 'Bozza (visibile solo a chi modifica il sito)', 'ept' ) } ) );
+		if ( data.can_publish ) {
+			status.appendChild( el( 'option', { value: 'publish', selected: page.status === 'publish', text: __( 'Pubblicata', 'ept' ) } ) );
+		}
+		grid.appendChild( field( 'ept-status', __( 'Stato della pagina tradotta', 'ept' ), status, data.target ? __( 'Si applica con "Aggiorna pagina".', 'ept' ) : __( 'Si applica con "Crea pagina".', 'ept' ) ) );
+
 		if ( data.target ) {
 			const links = el( 'span', {}, [
-				el( 'span', { text: data.target.status === 'publish' ? __( 'Pubblicata', 'ept' ) : __( 'Bozza', 'ept' ) } ),
-				' · ',
 				el( 'a', { href: data.target.view_link, target: '_blank', rel: 'noopener', text: __( 'Visualizza', 'ept' ) } ),
 				' · ',
 				el( 'a', { href: data.target.elementor_link, text: __( 'Apri in Elementor', 'ept' ) } ),
@@ -279,19 +290,6 @@
 				links.appendChild( el( 'span', { className: 'ept-tag ept-tag--warn', text: __( 'modificata a mano in Elementor', 'ept' ) } ) );
 			}
 			grid.appendChild( field( null, __( 'Pagina tradotta', 'ept' ), links ) );
-		} else {
-			const status = el( 'select', {
-				id: 'ept-status',
-				onChange: ( event ) => {
-					page.status = event.target.value;
-					setDirty( true );
-				},
-			} );
-			status.appendChild( el( 'option', { value: 'draft', selected: page.status !== 'publish', text: __( 'Bozza', 'ept' ) } ) );
-			if ( data.can_publish ) {
-				status.appendChild( el( 'option', { value: 'publish', selected: page.status === 'publish', text: __( 'Pubblicata', 'ept' ) } ) );
-			}
-			grid.appendChild( field( 'ept-status', __( 'Stato alla creazione', 'ept' ), status ) );
 		}
 
 		grid.appendChild( field( null, __( 'Avanzamento', 'ept' ), el( 'span', {}, [ el( 'progress', { id: 'ept-progress-bar', max: 1, value: 0 } ), ' ', el( 'span', { id: 'ept-progress' } ) ] ) ) );
@@ -1046,6 +1044,10 @@
 		}
 		if ( generate && ! data.parent.ok ) {
 			notice( 'error', data.parent.message );
+			return;
+		}
+		if ( generate && ! confirm && ! overwrite && data.target && data.target.status === 'publish' && data.page.status !== 'publish' &&
+			! window.confirm( __( 'La pagina tradotta è pubblicata: aggiornandola con lo stato "Bozza" non sarà più visibile ai visitatori. Continuare?', 'ept' ) ) ) {
 			return;
 		}
 		const pending = generate && ! confirm && ! overwrite ? pendingProposals() : 0;

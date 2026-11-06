@@ -280,7 +280,7 @@ final class Translation_Service {
 			'page'           => array(
 				'title'       => $title,
 				'slug'        => $slug,
-				'status'      => (string) ( $fields['status'] ?? 'draft' ),
+				'status'      => $target ? ( 'publish' === $target->post_status ? 'publish' : 'draft' ) : (string) ( $fields['status'] ?? 'draft' ),
 				'parent_mode' => $parent_mode,
 			),
 			'parent'         => $parent,
@@ -592,9 +592,14 @@ final class Translation_Service {
 			}
 			$created = true;
 		} else {
-			$current = get_post( $target_id );
-			if ( $is_home && $current && 'publish' !== $current->post_status && 'publish' === ( $fields['status'] ?? 'draft' ) && current_user_can( 'publish_pages' ) ) {
-				$postarr['post_status'] = 'publish';
+			$current   = get_post( $target_id );
+			$requested = isset( $input['page']['status'] ) ? ( 'publish' === $input['page']['status'] ? 'publish' : 'draft' ) : null;
+			if ( null === $requested && $is_home && $current && 'publish' !== $current->post_status && 'publish' === ( $fields['status'] ?? 'draft' ) ) {
+				$requested = 'publish'; // A root page created as draft before the home translation was published.
+			}
+			$now = $current && 'publish' === $current->post_status ? 'publish' : 'draft';
+			if ( null !== $requested && $now !== $requested && ( 'draft' === $requested || current_user_can( 'publish_pages' ) ) ) {
+				$postarr['post_status'] = $requested;
 			}
 			self::save_revision( (int) $target_id );
 			$postarr['ID'] = $target_id;

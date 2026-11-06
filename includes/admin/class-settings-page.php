@@ -34,6 +34,7 @@ final class Settings_Page {
 		add_action( 'admin_post_ept_delete_language', array( self::class, 'handle_delete_language' ) );
 		add_action( 'admin_post_ept_install_language_pack', array( self::class, 'handle_install_language_pack' ) );
 		add_action( 'admin_post_ept_save_general', array( self::class, 'handle_save_general' ) );
+		add_action( 'admin_post_ept_save_deepl', array( self::class, 'handle_save_deepl' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( EPT_FILE ), array( self::class, 'plugin_links' ) );
 	}
 
@@ -198,6 +199,9 @@ final class Settings_Page {
 				<?php submit_button( __( 'Aggiungi lingua', 'ept' ), 'secondary' ); ?>
 			</form>
 
+			<h2><?php esc_html_e( 'Proposte automatiche (DeepL)', 'ept' ); ?></h2>
+			<?php self::render_deepl(); ?>
+
 			<h2><?php esc_html_e( 'Generali', 'ept' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="ept_save_general">
@@ -210,6 +214,83 @@ final class Settings_Page {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * DeepL section: key (never shown in full), usage counter.
+	 */
+	private static function render_deepl(): void {
+		$key   = (string) Settings::get( 'deepl_key' );
+		$usage = \EPT\Proposals::usage_summary();
+		$api   = '' !== $key ? \EPT\Proposals::api_usage() : null;
+		?>
+		<p><?php esc_html_e( 'Con una chiave DeepL API (anche il piano gratuito "DeepL API Free") la schermata di traduzione arriva con i campi già compilati da proposte automatiche, sempre da rivedere. Senza chiave tutto funziona lo stesso, a mano e con la memoria traduzioni.', 'ept' ); ?></p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="ept_save_deepl">
+			<?php wp_nonce_field( 'ept_save_deepl' ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="ept-deepl-key"><?php esc_html_e( 'Chiave API DeepL', 'ept' ); ?></label></th>
+					<td>
+						<input id="ept-deepl-key" type="password" name="deepl_key" class="regular-text" autocomplete="off" value="" placeholder="<?php echo esc_attr( '' !== $key ? \EPT\Deepl::mask( $key ) : __( 'Incolla qui la chiave', 'ept' ) ); ?>">
+						<p class="description"><?php esc_html_e( 'La chiave non viene mai mostrata per intero. Lascia il campo vuoto per mantenere quella attuale. Le chiavi del piano gratuito finiscono con ":fx".', 'ept' ); ?></p>
+						<?php if ( '' !== $key ) : ?>
+							<label><input type="checkbox" name="deepl_remove" value="1"> <?php esc_html_e( 'Rimuovi la chiave', 'ept' ); ?></label>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Consumo', 'ept' ); ?></th>
+					<td>
+						<?php
+						/* translators: %s: number of characters. */
+						echo esc_html( sprintf( __( 'Caratteri inviati da questo sito nel mese: %s.', 'ept' ), number_format_i18n( $usage['site_month'] ) ) );
+						if ( is_array( $api ) ) {
+							echo ' ';
+							/* translators: 1: characters used, 2: monthly limit. */
+							echo esc_html( sprintf( __( 'Account DeepL: %1$s su %2$s caratteri nel periodo.', 'ept' ), number_format_i18n( $api['count'] ), number_format_i18n( $api['limit'] ) ) );
+						} elseif ( is_wp_error( $api ) ) {
+							echo ' <span class="ept-warning" style="color:#8a2424">' . esc_html( $api->get_error_message() ) . '</span>';
+						}
+						if ( '' !== $usage['warning'] ) {
+							echo '<p style="color:#8a2424">' . esc_html( $usage['warning'] ) . '</p>';
+						}
+						?>
+					</td>
+				</tr>
+			</table>
+			<?php submit_button( __( 'Salva e verifica la chiave', 'ept' ), 'secondary' ); ?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Save (or remove) the DeepL key and check it against the API.
+	 */
+	public static function handle_save_deepl(): void {
+		self::guard( 'ept_save_deepl' );
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in guard().
+		$remove = ! empty( $_POST['deepl_remove'] );
+		$key    = isset( $_POST['deepl_key'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['deepl_key'] ) ) ) : '';
+		// phpcs:enable
+		if ( $remove ) {
+			Settings::update( array( 'deepl_key' => '' ) );
+			delete_transient( \EPT\Proposals::USAGE_CACHE );
+			Notices::add( 'success', __( 'Chiave DeepL rimossa.', 'ept' ) );
+			self::back();
+		}
+		if ( '' !== $key ) {
+			Settings::update( array( 'deepl_key' => $key ) );
+		}
+		$usage = \EPT\Proposals::api_usage( true );
+		if ( null === $usage ) {
+			Notices::add( 'info', __( 'Nessuna chiave DeepL impostata.', 'ept' ) );
+		} elseif ( is_wp_error( $usage ) ) {
+			Notices::add( 'error', $usage->get_error_message() );
+		} else {
+			Notices::add( 'success', __( 'Chiave DeepL valida.', 'ept' ) );
+		}
+		self::back();
 	}
 
 	/**

@@ -138,3 +138,9 @@
 }
 
 .ept-tag--suggest { background: #dbeafe; color: #0a4b78; }
+
+.ept-row--proposal { border-left-color: #8c5cd6; background: #f6f1fd; }
+.ept-tag--proposal { background: #e9defa; color: #4a2a85; }
+
+/* The hidden attribute must win over display rules of tags and warnings. */
+.ept-screen [hidden] { display: none !important; }

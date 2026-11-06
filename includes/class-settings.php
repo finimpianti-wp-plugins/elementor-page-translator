@@ -24,6 +24,7 @@ final class Settings {
 	public static function defaults(): array {
 		return array(
 			'delete_data_on_uninstall' => false,
+			'deepl_key'                => '',
 		);
 	}
 

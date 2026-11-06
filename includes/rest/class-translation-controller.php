@@ -14,6 +14,7 @@
 
 namespace EPT\Rest;
 
+use EPT\Proposals;
 use EPT\Translation_Service;
 use EPT\Translations;
 use WP_Error;
@@ -71,6 +72,7 @@ final class Translation_Controller {
 				),
 			)
 		);
+		self::register_propose( $args );
 		register_rest_route(
 			self::NAMESPACE,
 			'/translations/(?P<id>\d+)/(?P<lang>[a-z0-9-]+)/generate',
@@ -87,6 +89,70 @@ final class Translation_Controller {
 						),
 					)
 				),
+			)
+		);
+	}
+
+	/**
+	 * Register the proposals route (called from register()).
+	 *
+	 * @param array<string,mixed> $args Common route arguments.
+	 */
+	private static function register_propose( array $args ): void {
+		register_rest_route(
+			self::NAMESPACE,
+			'/translations/(?P<id>\d+)/(?P<lang>[a-z0-9-]+)/propose',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( self::class, 'propose' ),
+				'permission_callback' => array( self::class, 'can_translate' ),
+				'args'                => $args,
+			)
+		);
+	}
+
+	/**
+	 * POST automatic proposals (memory, filter, DeepL). Body: keys[], skip_memory, include_title.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function propose( WP_REST_Request $request ) {
+		$source = Translation_Service::validate( (int) $request['id'], (string) $request['lang'] );
+		if ( is_wp_error( $source ) ) {
+			return $source;
+		}
+		$body   = (array) $request->get_json_params();
+		$keys   = array_values( array_filter( array_map( 'strval', (array) ( $body['keys'] ?? array() ) ) ) );
+		$lang   = (string) $request['lang'];
+		$result = Proposals::propose( $source, $lang, $keys, ! empty( $body['skip_memory'] ), ! empty( $body['include_title'] ) );
+
+		// Proposals are saved right away as unconfirmed drafts: reopening the screen does not send them again.
+		$strings = array();
+		foreach ( $result['proposals'] as $key => $proposal ) {
+			$strings[ $key ] = array(
+				't'  => $proposal['html'],
+				's'  => '',
+				'ok' => true,
+				'p'  => $proposal['source'],
+			);
+		}
+		$draft = array( 'strings' => $strings );
+		if ( null !== $result['title'] && '' === (string) ( \EPT\Translations::page_fields( $source->ID, $lang )['title'] ?? '' ) ) {
+			$draft['page'] = array( 'title' => $result['title'] );
+		}
+		if ( $strings || isset( $draft['page'] ) ) {
+			Translation_Service::save_draft( $source, $lang, $draft );
+		}
+
+		return rest_ensure_response(
+			array(
+				'count'  => count( $result['proposals'] ),
+				'title'  => $result['title'],
+				'error'  => $result['error'],
+				'sent'   => $result['sent'],
+				'usage'  => Proposals::usage_summary(),
+				'screen' => Translation_Service::screen_data( $source, $lang ),
 			)
 		);
 	}

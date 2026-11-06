@@ -114,6 +114,13 @@
 			.then( ( response ) => {
 				setData( response );
 				render();
+				if ( response.deepl && response.deepl.warning ) {
+					notice( 'warning', response.deepl.warning );
+				}
+				const empty = response.strings.filter( ( row ) => ! row.dynamic && row.state === 'new' && row.translation === '' && row.status === '' && row.format !== 'code' );
+				if ( empty.length && ( response.deepl.configured || empty.some( ( row ) => row.suggestion ) ) ) {
+					propose( [], false );
+				}
 			} )
 			.catch( ( error ) => {
 				app.replaceChildren( el( 'div', { className: 'notice notice-error' }, [ el( 'p', { text: error.message || __( 'Errore di caricamento.', 'ept' ) } ) ] ) );
@@ -131,6 +138,7 @@
 				ok: row.state !== 'modified',
 				simple: !! row.simple,
 				plain: row.simple ? row.simple.translation : '',
+				p: row.proposal || '', // unconfirmed automatic proposal: memory | filter | deepl
 			};
 		} );
 		slugTouched = data.page.slug !== '';
@@ -197,6 +205,7 @@
 					page.slug = slugify( page.title );
 					document.getElementById( 'ept-slug' ).value = page.slug;
 				}
+				document.getElementById( 'ept-slug' ).placeholder = slugify( page.title || data.source.title );
 				updateUrl();
 				setDirty( true );
 			},
@@ -208,6 +217,7 @@
 			type: 'text',
 			id: 'ept-slug',
 			value: page.slug,
+			placeholder: slugify( page.title || data.source.title ),
 			disabled: data.source.is_home,
 			onInput: ( event ) => {
 				page.slug = event.target.value;
@@ -322,8 +332,73 @@
 				el( 'input', { type: 'checkbox', id: 'ept-all-same', checked: allSame, onChange: ( event ) => setAllSame( event.target.checked ) } ),
 				' ' + __( 'Tutti i testi uguali all\'originale', 'ept' ),
 			] ),
+			el( 'button', { type: 'button', className: 'button', id: 'ept-propose', text: __( 'Proponi traduzioni', 'ept' ), onClick: () => propose( [], false ) } ),
+			el( 'button', { type: 'button', className: 'button', id: 'ept-accept-all', text: __( 'Accetta tutte le proposte', 'ept' ), onClick: acceptAll } ),
 			el( 'span', { id: 'ept-dirty', className: 'ept-tag ept-tag--warn', hidden: ! dirty, text: __( 'Modifiche non salvate', 'ept' ) } ),
 		] );
+	}
+
+	function proposalLabel( source ) {
+		if ( source === 'deepl' ) {
+			return __( 'Proposta DeepL da rivedere', 'ept' );
+		}
+		if ( source === 'memory' ) {
+			return __( 'Proposta dalla memoria da rivedere', 'ept' );
+		}
+		return __( 'Proposta automatica da rivedere', 'ept' );
+	}
+
+	function pendingProposals() {
+		return data.strings.filter( ( row ) => ! row.dynamic && rowState[ row.key ].p && rowState[ row.key ].s === '' ).length;
+	}
+
+	function acceptAll() {
+		data.strings.forEach( ( row ) => {
+			rowState[ row.key ].p = '';
+		} );
+		dirty = true;
+		render();
+	}
+
+	/**
+	 * Ask for proposals (memory, then DeepL) for the given rows, or for every row without a translation.
+	 * Unsaved edits are saved first; proposals come back saved as unconfirmed drafts.
+	 */
+	function propose( keys, skipMemory ) {
+		if ( busy ) {
+			return Promise.resolve();
+		}
+		const before = dirty ? wp.apiFetch( { path: path(), method: 'POST', data: body( false ) } ) : Promise.resolve();
+		setBusy( true );
+		notice( 'info', __( 'Richiesta delle proposte in corso…', 'ept' ) );
+		return before
+			.then( () => wp.apiFetch( { path: path( '/propose' ), method: 'POST', data: { keys, skip_memory: !! skipMemory, include_title: ! data.page.title } } ) )
+			.then( ( response ) => {
+				setBusy( false );
+				setData( response.screen );
+				render();
+				if ( response.error ) {
+					notice( response.count ? 'warning' : 'info', ( response.count ? sprintf( _n( '%d proposta ricevuta.', '%d proposte ricevute.', response.count, 'ept' ), response.count ) + ' ' : '' ) + response.error );
+				} else if ( response.count ) {
+					notice( 'success', sprintf( _n( '%d proposta da rivedere: è evidenziata in viola finché non la confermi o la modifichi.', '%d proposte da rivedere: sono evidenziate in viola finché non le confermi o le modifichi.', response.count, 'ept' ), response.count ) + usageText( response.usage ) );
+				} else {
+					notice( 'info', __( 'Nessun testo da proporre.', 'ept' ) );
+				}
+			} )
+			.catch( ( error ) => {
+				setBusy( false );
+				notice( 'error', error.message || __( 'Proposte non disponibili.', 'ept' ) );
+			} );
+	}
+
+	function usageText( usage ) {
+		if ( ! usage ) {
+			return '';
+		}
+		if ( usage.warning ) {
+			return ' ' + usage.warning;
+		}
+		return usage.limit ? ' ' + sprintf( __( 'DeepL: %1$s su %2$s caratteri usati nel periodo.', 'ept' ), usage.count.toLocaleString(), usage.limit.toLocaleString() ) : '';
 	}
 
 	function setAllSame( checked ) {
@@ -391,7 +466,7 @@
 	function renderRow( row ) {
 		const st = rowState[ row.key ];
 		const id = 'ept-t-' + row.key.replace( /[^a-zA-Z0-9_-]/g, '_' );
-		const rowEl = el( 'div', { className: 'ept-row ept-row--' + row.state, 'data-key': row.key } );
+		const rowEl = el( 'div', { className: 'ept-row ept-row--' + row.state + ( st.p && st.s === '' ? ' ept-row--proposal' : '' ), 'data-key': row.key } );
 
 		const meta = el( 'div', { className: 'ept-row-meta' }, [
 			el( 'strong', { text: row.widget_label } ),
@@ -399,6 +474,7 @@
 			row.source === 'fallback' ? el( 'span', { className: 'ept-tag', text: __( 'rilevato automaticamente', 'ept' ) } ) : null,
 			row.state === 'new' && ! row.dynamic ? el( 'span', { className: 'ept-tag ept-tag--new', text: __( 'nuovo', 'ept' ) } ) : null,
 			row.state === 'modified' ? el( 'span', { className: 'ept-tag ept-tag--warn', text: __( 'originale modificato', 'ept' ) } ) : null,
+			st.p && st.s === '' ? el( 'span', { className: 'ept-tag ept-tag--proposal', text: proposalLabel( st.p ) } ) : null,
 		] );
 		rowEl.appendChild( meta );
 
@@ -436,6 +512,14 @@
 					st.t = value;
 				}
 				st.ok = true;
+				if ( st.p ) {
+					st.p = '';
+					rowEl.classList.remove( 'ept-row--proposal' );
+					const tag = rowEl.querySelector( '.ept-tag--proposal' );
+					if ( tag ) {
+						tag.remove();
+					}
+				}
 				setDirty( true );
 				checkTags( row, rowEl );
 				updateProgress();
@@ -446,32 +530,6 @@
 
 		const warning = el( 'p', { className: 'ept-warning ept-tags-warning', hidden: true, text: __( 'Attenzione: il numero di tag HTML è diverso dall\'originale.', 'ept' ) } );
 		side.appendChild( warning );
-
-		if ( row.suggestion && st.t.trim() === '' && st.s === '' ) {
-			const usePlain = st.simple && row.suggestion.plain !== null;
-			const box = el( 'div', { className: 'ept-suggestion' }, [
-				el( 'span', { className: 'ept-tag ept-tag--suggest', text: __( 'Dalla memoria traduzioni', 'ept' ) } ),
-				el( 'span', { className: usePlain ? '' : 'ept-code', text: ' ' + ( usePlain ? row.suggestion.plain : row.suggestion.html ) + ' ' } ),
-				el( 'button', {
-					type: 'button',
-					className: 'button button-small',
-					text: __( 'Usa', 'ept' ),
-					onClick: () => {
-						st.t = row.suggestion.html;
-						if ( st.simple && usePlain ) {
-							st.plain = row.suggestion.plain;
-						} else {
-							st.simple = false;
-						}
-						st.ok = true;
-						setDirty( true );
-						rowEl.replaceWith( renderRow( row ) );
-						updateProgress();
-					},
-				} ),
-			] );
-			side.appendChild( box );
-		}
 
 		const controls = el( 'div', { className: 'ept-row-controls' } );
 		controls.appendChild(
@@ -527,6 +585,30 @@
 				},
 			} )
 		);
+		if ( st.p && st.s === '' ) {
+			controls.appendChild(
+				el( 'button', {
+					type: 'button',
+					className: 'button button-small',
+					text: __( 'Conferma proposta', 'ept' ),
+					onClick: () => {
+						st.p = '';
+						setDirty( true );
+						rowEl.replaceWith( renderRow( row ) );
+					},
+				} )
+			);
+		}
+		if ( data.deepl.configured && row.format !== 'code' ) {
+			controls.appendChild(
+				el( 'button', {
+					type: 'button',
+					className: 'button button-small',
+					text: __( 'Ripeti proposta', 'ept' ),
+					onClick: () => propose( [ row.key ], true ),
+				} )
+			);
+		}
 		if ( st.simple ) {
 			controls.appendChild(
 				el( 'button', {
@@ -615,7 +697,7 @@
 		data.strings.forEach( ( row ) => {
 			if ( ! row.dynamic ) {
 				const st = rowState[ row.key ];
-				strings[ row.key ] = { t: st.s ? '' : st.t, s: st.s, ok: st.ok };
+				strings[ row.key ] = { t: st.s ? '' : st.t, s: st.s, ok: st.ok, p: st.s ? '' : st.p };
 			}
 		} );
 		return { page: data.page, strings, confirm: !! confirm };
@@ -623,7 +705,7 @@
 
 	function setBusy( value ) {
 		busy = value;
-		[ 'ept-save', 'ept-generate' ].forEach( ( id ) => {
+		[ 'ept-save', 'ept-generate', 'ept-propose', 'ept-accept-all' ].forEach( ( id ) => {
 			const button = document.getElementById( id );
 			if ( button ) {
 				button.disabled = value;
@@ -641,6 +723,10 @@
 		}
 		if ( generate && ! data.parent.ok ) {
 			notice( 'error', data.parent.message );
+			return;
+		}
+		const pending = generate && ! confirm && ! overwrite ? pendingProposals() : 0;
+		if ( pending && ! window.confirm( sprintf( _n( 'C\'è %d proposta automatica non confermata: verrà usata così com\'è. Continuare?', 'Ci sono %d proposte automatiche non confermate: verranno usate così come sono. Continuare?', pending, 'ept' ), pending ) ) ) {
 			return;
 		}
 		setBusy( true );

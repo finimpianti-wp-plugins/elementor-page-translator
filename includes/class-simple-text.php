@@ -80,4 +80,25 @@ final class Simple_Text {
 		$text = str_replace( array( "\r\n", "\r", "\n" ), '<br>', $text );
 		return $prefix . $text . $suffix;
 	}
+
+	/**
+	 * Plain form of a translation for a row shown in simplified view, or null when the
+	 * translation does not fit the original wrapper (the row is then shown as HTML).
+	 *
+	 * @param string                                          $translation Translation (HTML).
+	 * @param array{prefix:string,suffix:string,text:string} $original    analyze() of the original.
+	 * @param bool                                            $newline_is_space See analyze().
+	 */
+	public static function plain_translation( string $translation, array $original, bool $newline_is_space = false ): ?string {
+		$translation = Html_Tools::strip_noise( $translation );
+		if ( ! Text_Heuristics::has_html( $translation ) ) {
+			// A translation without tags fits only an original without wrapper (just line breaks).
+			if ( '' !== $original['prefix'] || '' !== $original['suffix'] || ( ! $newline_is_space && preg_match( "/[\r\n]/", $translation ) ) ) {
+				return null;
+			}
+			return html_entity_decode( $newline_is_space ? (string) preg_replace( '/\s*\r?\n\s*/', ' ', $translation ) : $translation, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		}
+		$a = self::analyze( $translation, $newline_is_space );
+		return null !== $a && $a['prefix'] === $original['prefix'] && $a['suffix'] === $original['suffix'] ? $a['text'] : null;
+	}
 }

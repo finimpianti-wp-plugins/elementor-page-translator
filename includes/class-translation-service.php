@@ -205,11 +205,11 @@ final class Translation_Service {
 			$simple        = Widget_Map::CODE === $item['format'] || $item['dynamic'] ? null : Simple_Text::analyze( $original_html, $space );
 			$translation_s = '';
 			if ( null !== $simple && '' !== $translation ) {
-				$t_simple = Simple_Text::analyze( Html_Tools::strip_noise( $translation ), $space );
-				if ( null === $t_simple || $t_simple['prefix'] !== $simple['prefix'] || $t_simple['suffix'] !== $simple['suffix'] ) {
+				$plain = Simple_Text::plain_translation( $translation, $simple, $space );
+				if ( null === $plain ) {
 					$simple = null;
 				} else {
-					$translation_s = $t_simple['text'];
+					$translation_s = $plain;
 				}
 			}
 			$row    = array(
@@ -233,6 +233,7 @@ final class Translation_Service {
 				'state'        => $state,
 				'old_original' => $old,
 				'suggestion'   => self::suggestion_for( $item, $state, $suggest, $simple, $space ),
+				'proposal'     => is_array( $entry ) ? (string) ( $entry['p'] ?? '' ) : '',
 			);
 			$rows[] = $row;
 			if ( ! $item['dynamic'] ) {
@@ -289,6 +290,7 @@ final class Translation_Service {
 				'total' => $total,
 			),
 			'can_unfiltered' => current_user_can( 'unfiltered_html' ),
+			'deepl'          => Proposals::usage_summary(),
 			'can_publish'    => current_user_can( 'publish_pages' ),
 		);
 	}
@@ -308,13 +310,7 @@ final class Translation_Service {
 			return null;
 		}
 		$html  = $suggest[ $item['hash'] ];
-		$plain = null;
-		if ( null !== $simple ) {
-			$a = Simple_Text::analyze( Html_Tools::strip_noise( $html ), $space );
-			if ( null !== $a && $a['prefix'] === $simple['prefix'] && $a['suffix'] === $simple['suffix'] ) {
-				$plain = $a['text'];
-			}
-		}
+		$plain = null !== $simple ? Simple_Text::plain_translation( $html, $simple, $space ) : null;
 		return array(
 			'html'  => $html,
 			'plain' => $plain,
@@ -401,6 +397,11 @@ final class Translation_Service {
 				't' => $text,
 				's' => $status,
 			);
+			// Automatic proposal not yet confirmed by the user (memory, filter or DeepL).
+			$proposal = (string) ( $row['p'] ?? '' );
+			if ( '' !== $text && in_array( $proposal, array( 'memory', 'filter', 'deepl' ), true ) ) {
+				$saved[ $key ]['p'] = $proposal;
+			}
 		}
 		Translations::save_strings( $source->ID, $lang, $saved );
 

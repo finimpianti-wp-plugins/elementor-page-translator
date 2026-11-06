@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.5.0\n"
+"Project-Id-Version: Elementor Page Translator 0.6.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-06T11:07:40+00:00\n"
+"POT-Creation-Date: 2026-11-06T11:34:11+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -36,7 +36,7 @@ msgid "Censimento Elementor"
 msgstr ""
 
 #: includes/admin/class-census-page.php:48
-#: includes/admin/class-settings-page.php:76
+#: includes/admin/class-settings-page.php:77
 msgid "Non hai i permessi per accedere a questa pagina."
 msgstr ""
 
@@ -105,7 +105,7 @@ msgid "regola di riserva"
 msgstr ""
 
 #: includes/admin/class-census-page.php:130
-#: includes/admin/class-settings-page.php:259
+#: includes/admin/class-settings-page.php:340
 msgid "Non hai i permessi per eseguire questa operazione."
 msgstr ""
 
@@ -132,9 +132,9 @@ msgid "Traduci"
 msgstr ""
 
 #: includes/admin/class-pages-list.php:89
-#: includes/admin/class-settings-page.php:45
 #: includes/admin/class-settings-page.php:46
-#: includes/admin/class-settings-page.php:84
+#: includes/admin/class-settings-page.php:47
+#: includes/admin/class-settings-page.php:85
 msgid "Traduzioni"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgid "%1$s · traduzione di \"%2$s\""
 msgstr ""
 
 #: includes/admin/class-pages-list.php:262
-#: assets/translation-screen.js:260
+#: assets/translation-screen.js:270
 msgid "incompleta"
 msgstr ""
 
@@ -203,214 +203,270 @@ msgstr ""
 msgid "Tutte le lingue"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:60
+#: includes/admin/class-settings-page.php:61
 msgid "Impostazioni"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:86
+#: includes/admin/class-settings-page.php:87
 msgid "Lingua predefinita"
 msgstr ""
 
 #. translators: 1: language name, 2: code, 3: locale.
-#: includes/admin/class-settings-page.php:91
+#: includes/admin/class-settings-page.php:92
 #, php-format
 msgid "%1$s (codice %2$s, locale %3$s). Le pagine in questa lingua restano sugli URL attuali, senza prefisso."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:99
+#: includes/admin/class-settings-page.php:100
 msgid "Lingue aggiuntive"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:101
+#: includes/admin/class-settings-page.php:102
 msgid "Nessuna lingua aggiuntiva configurata."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:109
-#: includes/admin/class-settings-page.php:125
-#: includes/admin/class-settings-page.php:181
+#: includes/admin/class-settings-page.php:110
+#: includes/admin/class-settings-page.php:126
+#: includes/admin/class-settings-page.php:182
 msgid "Nome nativo"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:110
-#: includes/admin/class-settings-page.php:176
+#: includes/admin/class-settings-page.php:111
+#: includes/admin/class-settings-page.php:177
 msgid "Codice"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:111
-msgid "Locale"
-msgstr ""
-
 #: includes/admin/class-settings-page.php:112
-#: includes/admin/class-settings-page.php:128
-#: includes/admin/class-settings-page.php:186
-msgid "Prefisso URL"
+msgid "Locale"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:113
 #: includes/admin/class-settings-page.php:129
-msgid "Attiva"
+#: includes/admin/class-settings-page.php:187
+msgid "Prefisso URL"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:114
 #: includes/admin/class-settings-page.php:130
-msgid "Pubblica"
+msgid "Attiva"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:115
 #: includes/admin/class-settings-page.php:131
-msgid "Ordine"
+msgid "Pubblica"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:116
-msgid "Pagina radice"
+#: includes/admin/class-settings-page.php:132
+msgid "Ordine"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:117
-msgid "Pacchetto lingua WordPress"
+msgid "Pagina radice"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:118
+msgid "Pacchetto lingua WordPress"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:119
 msgid "Azioni"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:136
+#: includes/admin/class-settings-page.php:137
 msgid "Rimuovere questa lingua dalla configurazione? Le pagine non vengono eliminate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:136
+#: includes/admin/class-settings-page.php:137
 msgid "Rimuovi"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:144
+#: includes/admin/class-settings-page.php:145
 msgid "\"Attiva\": la lingua si può tradurre e ha la sua pagina radice. \"Pubblica\": le pagine sono visibili ai visitatori, nel selettore, negli hreflang e nella sitemap. Una lingua attiva ma non pubblica è visibile solo agli utenti connessi con permesso di modifica."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:147
+#: includes/admin/class-settings-page.php:148
 msgid "Cambiare il prefisso di una lingua attiva cambia lo slug della sua pagina radice, e quindi l'URL di tutte le pagine di quella lingua."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:149
+#: includes/admin/class-settings-page.php:150
 msgid "Salva lingue"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:153
-#: includes/admin/class-settings-page.php:198
+#: includes/admin/class-settings-page.php:154
+#: includes/admin/class-settings-page.php:199
 msgid "Aggiungi lingua"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:159
+#: includes/admin/class-settings-page.php:160
 msgid "Lingua (locale WordPress)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:162
+#: includes/admin/class-settings-page.php:163
 msgid "— Scegli —"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:172
+#: includes/admin/class-settings-page.php:173
 msgid "Per l'inglese scegli en_GB (britannico) o en_US (americano). Le lingue scritte da destra a sinistra non sono disponibili."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:178
+#: includes/admin/class-settings-page.php:179
 msgid "Facoltativo: se vuoto si ricava dal locale (en_GB → en)."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:183
+#: includes/admin/class-settings-page.php:184
 msgid "Facoltativo: se vuoto si usa il nome fornito da WordPress (es. \"English (UK)\"). Consigliato un nome breve, es. \"English\"."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:188
+#: includes/admin/class-settings-page.php:189
 msgid "Facoltativo: se vuoto è uguale al codice."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:191
+#: includes/admin/class-settings-page.php:192
 msgid "Opzioni"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:193
+#: includes/admin/class-settings-page.php:194
 msgid "Attiva subito (crea la pagina radice in bozza)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:194
+#: includes/admin/class-settings-page.php:195
 msgid "Scarica il pacchetto lingua di WordPress (testi di tema e plugin tradotti)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:201
+#: includes/admin/class-settings-page.php:202
+msgid "Proposte automatiche (DeepL)"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:205
 msgid "Generali"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:207
+#: includes/admin/class-settings-page.php:211
 msgid "Alla disinstallazione elimina i dati del plugin (impostazioni, collegamenti tra traduzioni, memoria traduzioni). Le pagine tradotte non vengono mai eliminate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:209
+#: includes/admin/class-settings-page.php:213
 msgid "Salva"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:223
+#: includes/admin/class-settings-page.php:227
+msgid "Con una chiave DeepL API (anche il piano gratuito \"DeepL API Free\") la schermata di traduzione arriva con i campi già compilati da proposte automatiche, sempre da rivedere. Senza chiave tutto funziona lo stesso, a mano e con la memoria traduzioni."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:233
+msgid "Chiave API DeepL"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:235
+msgid "Incolla qui la chiave"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:236
+msgid "La chiave non viene mai mostrata per intero. Lascia il campo vuoto per mantenere quella attuale. Le chiavi del piano gratuito finiscono con \":fx\"."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:238
+msgid "Rimuovi la chiave"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:243
+msgid "Consumo"
+msgstr ""
+
+#. translators: %s: number of characters.
+#: includes/admin/class-settings-page.php:247
+#, php-format
+msgid "Caratteri inviati da questo sito nel mese: %s."
+msgstr ""
+
+#. translators: 1: characters used, 2: monthly limit.
+#: includes/admin/class-settings-page.php:251
+#, php-format
+msgid "Account DeepL: %1$s su %2$s caratteri nel periodo."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:262
+msgid "Salva e verifica la chiave"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:279
+msgid "Chiave DeepL rimossa."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:287
+msgid "Nessuna chiave DeepL impostata."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:291
+msgid "Chiave DeepL valida."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:304
 msgid "Non ancora creata (si crea attivando la lingua)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:242
+#: includes/admin/class-settings-page.php:323
 msgid "Installato"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:248
+#: includes/admin/class-settings-page.php:329
 msgid "Scarica"
 msgstr ""
 
 #. translators: %s: language name.
-#: includes/admin/class-settings-page.php:312
+#: includes/admin/class-settings-page.php:393
 #, php-format
 msgid "Lingua %s aggiunta."
 msgstr ""
 
 #. translators: 1: language name, 2: error message.
-#: includes/admin/class-settings-page.php:353
+#: includes/admin/class-settings-page.php:434
 #, php-format
 msgid "%1$s: %2$s"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:369
+#: includes/admin/class-settings-page.php:450
 msgid "Lingue salvate."
 msgstr ""
 
 #. translators: 1: language name, 2: error message.
-#: includes/admin/class-settings-page.php:393
+#: includes/admin/class-settings-page.php:474
 #, php-format
 msgid "Impossibile attivare %1$s: %2$s"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:412
+#: includes/admin/class-settings-page.php:493
 msgid "Disattiva la lingua prima di rimuoverla."
 msgstr ""
 
 #. translators: %s: language name.
-#: includes/admin/class-settings-page.php:419
+#: includes/admin/class-settings-page.php:500
 #, php-format
 msgid "Lingua %s rimossa dalla configurazione. Le sue pagine, compresa la pagina radice, non sono state eliminate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:447
+#: includes/admin/class-settings-page.php:528
 msgid "Non hai il permesso di installare pacchetti lingua."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:453
+#: includes/admin/class-settings-page.php:534
 msgid "WordPress non può scrivere i file della lingua (accesso al filesystem non disponibile)."
 msgstr ""
 
 #. translators: %s: locale.
-#: includes/admin/class-settings-page.php:459
+#: includes/admin/class-settings-page.php:540
 #, php-format
 msgid "Pacchetto lingua %s installato."
 msgstr ""
 
 #. translators: %s: locale.
-#: includes/admin/class-settings-page.php:462
+#: includes/admin/class-settings-page.php:543
 #, php-format
 msgid "Download del pacchetto lingua %s non riuscito."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:476
+#: includes/admin/class-settings-page.php:557
 msgid "Impostazioni salvate."
 msgstr ""
 
@@ -422,7 +478,7 @@ msgid "Traduzione"
 msgstr ""
 
 #: includes/admin/class-translation-screen.php:123
-#: includes/rest/class-translation-controller.php:103
+#: includes/rest/class-translation-controller.php:169
 msgid "Non hai i permessi per tradurre questa pagina."
 msgstr ""
 
@@ -436,6 +492,41 @@ msgstr ""
 
 #: includes/admin/class-translation-screen.php:137
 msgid "La schermata di traduzione richiede JavaScript."
+msgstr ""
+
+#: includes/class-deepl.php:161
+#: includes/class-deepl.php:228
+msgid "Risposta di DeepL non valida."
+msgstr ""
+
+#: includes/class-deepl.php:196
+msgid "Chiave API di DeepL non impostata (Impostazioni → Traduzioni)."
+msgstr ""
+
+#: includes/class-deepl.php:215
+msgid "DeepL non risponde: controlla la connessione del server e riprova."
+msgstr ""
+
+#: includes/class-deepl.php:239
+msgid "Chiave API di DeepL non valida o non autorizzata."
+msgstr ""
+
+#: includes/class-deepl.php:241
+msgid "Hai esaurito i caratteri del piano DeepL per questo mese."
+msgstr ""
+
+#: includes/class-deepl.php:243
+msgid "Troppe richieste a DeepL: riprova tra poco."
+msgstr ""
+
+#: includes/class-deepl.php:245
+msgid "DeepL ha rifiutato la richiesta (lingua non supportata o testo non valido)."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/class-deepl.php:248
+#, php-format
+msgid "Errore di DeepL (codice %d): riprova più tardi."
 msgstr ""
 
 #: includes/class-languages.php:230
@@ -468,6 +559,16 @@ msgstr ""
 
 #: includes/class-languages.php:237
 msgid "Il prefisso URL è già usato da un'altra lingua."
+msgstr ""
+
+#: includes/class-proposals.php:116
+msgid "Proposte automatiche non disponibili: inserisci la chiave API di DeepL in Impostazioni → Traduzioni. Puoi tradurre comunque a mano."
+msgstr ""
+
+#. translators: 1: characters used, 2: monthly limit.
+#: includes/class-proposals.php:252
+#, php-format
+msgid "Attenzione: hai usato %1$s caratteri DeepL su %2$s disponibili questo mese."
 msgstr ""
 
 #: includes/class-root-pages.php:57
@@ -618,262 +719,320 @@ msgstr ""
 msgid "La pagina genitore \"%s\" non è ancora tradotta in questa lingua. Traducila prima, oppure appoggia questa pagina alla pagina radice."
 msgstr ""
 
-#: includes/class-translation-service.php:461
+#: includes/class-translation-service.php:462
 msgid "Elementor non è attivo."
 msgstr ""
 
 #. translators: %d: number of texts.
-#: includes/class-translation-service.php:511
+#: includes/class-translation-service.php:512
 #, php-format
 msgid "Manca %d traduzione: il testo resterà in italiano e la pagina sarà marcata \"incompleta\"."
 msgid_plural "Mancano %d traduzioni: i testi resteranno in italiano e la pagina sarà marcata \"incompleta\"."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-translation-service.php:525
+#: includes/class-translation-service.php:526
 msgid "La pagina tradotta è stata modificata a mano in Elementor dopo l'ultima generazione: aggiornandola, quelle modifiche andranno perse (restano recuperabili dalle revisioni)."
 msgstr ""
 
-#: includes/class-translation-service.php:582
+#: includes/class-translation-service.php:583
 msgid "Elementor non riesce ad aprire la pagina tradotta."
 msgstr ""
 
-#: includes/class-translation-service.php:591
+#: includes/class-translation-service.php:592
 msgid "Elementor non ha salvato la pagina tradotta (permessi insufficienti?)."
 msgstr ""
 
-#: includes/class-translation-service.php:645
+#: includes/class-translation-service.php:646
 msgid "Traduzione inesistente."
 msgstr ""
 
-#: includes/rest/class-translation-controller.php:107
+#: includes/rest/class-translation-controller.php:173
 msgid "Non hai i permessi per modificare la pagina tradotta."
 msgstr ""
 
-#: assets/translation-screen.js:119
+#: assets/translation-screen.js:126
 msgid "Errore di caricamento."
 msgstr ""
 
-#: assets/translation-screen.js:162
+#: assets/translation-screen.js:170
 msgid "Ci sono modifiche non salvate. Cambiare lingua comunque?"
 msgstr ""
 
-#: assets/translation-screen.js:176
+#: assets/translation-screen.js:184
 msgid "Pagina originale:"
 msgstr ""
 
-#: assets/translation-screen.js:179
+#: assets/translation-screen.js:187
 msgid "Lingua"
 msgstr ""
 
-#: assets/translation-screen.js:181
+#: assets/translation-screen.js:189
 msgid "lingua non pubblica"
 msgstr ""
 
-#: assets/translation-screen.js:204
+#: assets/translation-screen.js:213
 msgid "Titolo della pagina"
 msgstr ""
 
-#: assets/translation-screen.js:219
+#: assets/translation-screen.js:229
 msgid "Slug"
 msgstr ""
 
-#: assets/translation-screen.js:219
+#: assets/translation-screen.js:229
 msgid "La home della lingua è la pagina radice: lo slug è il prefisso."
 msgstr ""
 
-#: assets/translation-screen.js:240
+#: assets/translation-screen.js:250
 msgid "Appoggia alla pagina radice della lingua"
 msgstr ""
 
-#: assets/translation-screen.js:244
+#: assets/translation-screen.js:254
 msgid "Genitore"
 msgstr ""
 
-#: assets/translation-screen.js:245
+#: assets/translation-screen.js:255
 msgid "Indirizzo"
 msgstr ""
 
-#: assets/translation-screen.js:250
-#: assets/translation-screen.js:276
+#: assets/translation-screen.js:260
+#: assets/translation-screen.js:286
 msgid "Pubblicata"
 msgstr ""
 
-#: assets/translation-screen.js:250
-#: assets/translation-screen.js:274
+#: assets/translation-screen.js:260
+#: assets/translation-screen.js:284
 msgid "Bozza"
 msgstr ""
 
-#: assets/translation-screen.js:252
-#: assets/translation-screen.js:657
+#: assets/translation-screen.js:262
+#: assets/translation-screen.js:743
 msgid "Visualizza"
 msgstr ""
 
-#: assets/translation-screen.js:254
-#: assets/translation-screen.js:658
+#: assets/translation-screen.js:264
+#: assets/translation-screen.js:744
 msgid "Apri in Elementor"
 msgstr ""
 
-#: assets/translation-screen.js:257
+#: assets/translation-screen.js:267
 msgid "da aggiornare"
 msgstr ""
 
-#: assets/translation-screen.js:263
+#: assets/translation-screen.js:273
 msgid "modificata a mano in Elementor"
 msgstr ""
 
-#: assets/translation-screen.js:265
+#: assets/translation-screen.js:275
 msgid "Pagina tradotta"
 msgstr ""
 
-#: assets/translation-screen.js:278
+#: assets/translation-screen.js:288
 msgid "Stato alla creazione"
 msgstr ""
 
-#: assets/translation-screen.js:281
+#: assets/translation-screen.js:291
 msgid "Avanzamento"
 msgstr ""
 
-#: assets/translation-screen.js:319
+#: assets/translation-screen.js:329
 msgid "Mostra solo i testi da tradurre"
 msgstr ""
 
-#: assets/translation-screen.js:323
+#: assets/translation-screen.js:333
 msgid "Tutti i testi uguali all'originale"
 msgstr ""
 
-#: assets/translation-screen.js:325
-msgid "Modifiche non salvate"
+#: assets/translation-screen.js:335
+msgid "Proponi traduzioni"
 msgstr ""
 
 #: assets/translation-screen.js:336
+msgid "Accetta tutte le proposte"
+msgstr ""
+
+#: assets/translation-screen.js:337
+msgid "Modifiche non salvate"
+msgstr ""
+
+#: assets/translation-screen.js:343
+msgid "Proposta DeepL da rivedere"
+msgstr ""
+
+#: assets/translation-screen.js:346
+msgid "Proposta dalla memoria da rivedere"
+msgstr ""
+
+#: assets/translation-screen.js:348
+msgid "Proposta automatica da rivedere"
+msgstr ""
+
+#: assets/translation-screen.js:373
+msgid "Richiesta delle proposte in corso…"
+msgstr ""
+
+#: assets/translation-screen.js:381
+#, js-format
+msgid "%d proposta ricevuta."
+msgid_plural "%d proposte ricevute."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/translation-screen.js:383
+#, js-format
+msgid "%d proposta da rivedere: è evidenziata in viola finché non la confermi o la modifichi."
+msgid_plural "%d proposte da rivedere: sono evidenziate in viola finché non le confermi o le modifichi."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/translation-screen.js:385
+msgid "Nessun testo da proporre."
+msgstr ""
+
+#: assets/translation-screen.js:390
+msgid "Proposte non disponibili."
+msgstr ""
+
+#: assets/translation-screen.js:401
+#, js-format
+msgid "DeepL: %1$s su %2$s caratteri usati nel periodo."
+msgstr ""
+
+#: assets/translation-screen.js:411
 #, js-format
 msgid "%d testo è già tradotto. OK: rendi uguale all'originale anche quello. Annulla: solo i testi senza traduzione."
 msgid_plural "%d testi sono già tradotti. OK: rendi uguali all'originale anche quelli. Annulla: solo i testi senza traduzione."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:363
+#: assets/translation-screen.js:438
 msgid "Testi"
 msgstr ""
 
-#: assets/translation-screen.js:365
+#: assets/translation-screen.js:440
 msgid "Nessun testo da tradurre in questa pagina."
 msgstr ""
 
-#: assets/translation-screen.js:373
+#: assets/translation-screen.js:448
 #, js-format
 msgid "Sezione %d"
 msgstr ""
 
-#: assets/translation-screen.js:399
+#: assets/translation-screen.js:474
 msgid "rilevato automaticamente"
 msgstr ""
 
-#: assets/translation-screen.js:400
+#: assets/translation-screen.js:475
 msgid "nuovo"
 msgstr ""
 
-#: assets/translation-screen.js:401
+#: assets/translation-screen.js:476
 msgid "originale modificato"
 msgstr ""
 
-#: assets/translation-screen.js:410
+#: assets/translation-screen.js:486
 msgid "Originale precedente"
 msgstr ""
 
-#: assets/translation-screen.js:416
+#: assets/translation-screen.js:492
 msgid "Contenuto dinamico: viene copiato invariato."
 msgstr ""
 
-#: assets/translation-screen.js:428
+#: assets/translation-screen.js:504
 #, js-format
 msgid "Traduzione di: %s"
 msgstr ""
 
-#: assets/translation-screen.js:447
+#: assets/translation-screen.js:531
 msgid "Attenzione: il numero di tag HTML è diverso dall'originale."
 msgstr ""
 
-#: assets/translation-screen.js:453
-msgid "Dalla memoria traduzioni"
-msgstr ""
-
-#: assets/translation-screen.js:458
-msgid "Usa"
-msgstr ""
-
-#: assets/translation-screen.js:491
+#: assets/translation-screen.js:549
 msgid "Uguale all'originale"
 msgstr ""
 
-#: assets/translation-screen.js:508
+#: assets/translation-screen.js:566
 msgid "Escludi"
 msgstr ""
 
-#: assets/translation-screen.js:516
+#: assets/translation-screen.js:574
 msgid "Copia originale"
 msgstr ""
 
-#: assets/translation-screen.js:535
+#: assets/translation-screen.js:593
+msgid "Conferma proposta"
+msgstr ""
+
+#: assets/translation-screen.js:607
+msgid "Ripeti proposta"
+msgstr ""
+
+#: assets/translation-screen.js:617
 msgid "Mostra HTML"
 msgstr ""
 
-#: assets/translation-screen.js:548
+#: assets/translation-screen.js:630
 msgid "Conferma traduzione"
 msgstr ""
 
-#: assets/translation-screen.js:587
+#: assets/translation-screen.js:669
 #, js-format
 msgid "%1$d di %2$d testi"
 msgstr ""
 
-#: assets/translation-screen.js:597
+#: assets/translation-screen.js:679
 msgid "Salva bozza traduzione"
 msgstr ""
 
-#: assets/translation-screen.js:602
+#: assets/translation-screen.js:684
 msgid "Aggiorna pagina"
 msgstr ""
 
-#: assets/translation-screen.js:602
+#: assets/translation-screen.js:684
 msgid "Crea pagina"
 msgstr ""
 
-#: assets/translation-screen.js:655
+#: assets/translation-screen.js:729
+#, js-format
+msgid "C'è %d proposta automatica non confermata: verrà usata così com'è. Continuare?"
+msgid_plural "Ci sono %d proposte automatiche non confermate: verranno usate così come sono. Continuare?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/translation-screen.js:741
 msgid "Pagina tradotta creata."
 msgstr ""
 
-#: assets/translation-screen.js:655
+#: assets/translation-screen.js:741
 msgid "Pagina tradotta aggiornata."
 msgstr ""
 
-#: assets/translation-screen.js:656
+#: assets/translation-screen.js:742
 #, js-format
 msgid "%d testo è rimasto in italiano."
 msgid_plural "%d testi sono rimasti in italiano."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:661
+#: assets/translation-screen.js:747
 msgid "Bozza della traduzione salvata. La pagina tradotta non è stata modificata."
 msgstr ""
 
-#: assets/translation-screen.js:664
+#: assets/translation-screen.js:750
 #, js-format
 msgid "In %d testo parte del markup HTML è stata rimossa perché non hai il permesso di inserire HTML libero."
 msgid_plural "In %d testi parte del markup HTML è stata rimossa perché non hai il permesso di inserire HTML libero."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:670
+#: assets/translation-screen.js:756
 msgid "Creare o aggiornare la pagina comunque?"
 msgstr ""
 
-#: assets/translation-screen.js:676
+#: assets/translation-screen.js:762
 msgid "Aggiornare comunque e sovrascrivere le modifiche manuali?"
 msgstr ""
 
-#: assets/translation-screen.js:681
+#: assets/translation-screen.js:767
 msgid "Errore durante il salvataggio."
 msgstr ""

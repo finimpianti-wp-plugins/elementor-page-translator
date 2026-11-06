@@ -81,7 +81,8 @@ final class Links {
 			return $out;
 		}
 
-		if ( '' === trim( $path, '/' ) ) {
+		$by_id = '' === trim( $path, '/' ) ? self::page_from_path( $path, $url ) : 0;
+		if ( '' === trim( $path, '/' ) && ! $by_id ) {
 			$root          = (int) ( Languages::get( $lang )['root_page_id'] ?? 0 );
 			$out['type']   = 'home';
 			$out['target'] = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
@@ -97,18 +98,41 @@ final class Links {
 			return $out;
 		}
 
-		$absolute = home_url( '/' . ltrim( $path, '/' ) );
-		$target   = url_to_postid( $absolute );
-		if ( ! $target ) {
-			$alt    = str_ends_with( $absolute, '/' ) ? rtrim( $absolute, '/' ) : $absolute . '/';
-			$target = url_to_postid( $alt );
-		}
+		$target = $by_id ? $by_id : self::page_from_path( $path, $url );
 		if ( ! $target ) {
 			$out['type']    = 'internal_unknown';
 			$out['message'] = __( 'Indirizzo del sito che non corrisponde a una pagina: resta uguale.', 'ept' );
 			return $out;
 		}
 		return self::classify_target( (int) $target, $lang, $suffix, $url, $out );
+	}
+
+	/**
+	 * Post ID behind an internal path. Works with any permalink setting: url_to_postid()
+	 * needs pretty permalinks active (staging copies often have them off), so the page is
+	 * also looked up by its hierarchical slug path, and ?page_id= / ?p= links are read directly.
+	 *
+	 * @param string $path Path relative to the home (e.g. "/servizi/web/").
+	 * @param string $url  Original URL (for its query string).
+	 */
+	public static function page_from_path( string $path, string $url ): int {
+		parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
+		foreach ( array( 'page_id', 'p' ) as $param ) {
+			if ( isset( $query[ $param ] ) && is_numeric( $query[ $param ] ) && get_post( (int) $query[ $param ] ) ) {
+				return (int) $query[ $param ];
+			}
+		}
+		$slug_path = trim( $path, '/' );
+		if ( '' === $slug_path ) {
+			return 0;
+		}
+		$page = get_page_by_path( $slug_path, OBJECT, 'page' );
+		if ( $page instanceof WP_Post && 'trash' !== $page->post_status ) {
+			return (int) $page->ID;
+		}
+		$absolute = home_url( '/' . $slug_path . '/' );
+		$target   = url_to_postid( $absolute );
+		return $target ? (int) $target : (int) url_to_postid( rtrim( $absolute, '/' ) );
 	}
 
 	/**
@@ -313,6 +337,8 @@ final class Links {
 				'type'         => $class['type'],
 				'proposed'     => $class['proposed'],
 				'translatable' => $class['translatable'],
+				// Links to site pages: the choice also applies once the page gets translated.
+				'choosable'    => in_array( $class['type'], array( 'page', 'home', 'page_untranslated', 'page_unpublished' ), true ),
 				'message'      => $class['message'],
 				'untranslated' => in_array( $class['type'], array( 'page_untranslated', 'page_unpublished' ), true ) ? $class['target'] : 0,
 				'mode'         => $mode,

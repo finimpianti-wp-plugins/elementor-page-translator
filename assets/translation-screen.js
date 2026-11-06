@@ -900,7 +900,7 @@
 			wrap.appendChild( el( 'p', { text: __( 'Nessun link in questa pagina.', 'ept' ) } ) );
 			return node;
 		}
-		wrap.appendChild( el( 'p', { className: 'description', text: __( 'Ogni link si sceglie singolarmente: "Traduci" usa la proposta; togliendo la spunta il link resta uguale all\'originale; un URL manuale sostituisce entrambi. Le scelte valgono anche per gli aggiornamenti successivi.', 'ept' ) } ) );
+		wrap.appendChild( el( 'p', { className: 'description', text: sprintf( __( 'I link alle pagine del sito si convertono da soli nella versione %s quando quella pagina è tradotta e pubblicata (es. /%s/…). Quelli verso pagine non ancora tradotte restano in italiano finché non le traduci: allora il plugin propone di aggiornarli. Togli la spunta "Traduci" per lasciare un link in italiano; un URL manuale ha la precedenza su tutto. Ancore, file, email e siti esterni restano uguali, salvo URL manuale.', 'ept' ), data.lang.name, data.lang.prefix ) } ) );
 		const table = el( 'table', { className: 'widefat striped ept-links-table' } );
 		table.appendChild( el( 'thead', {}, [ el( 'tr', {}, [
 			el( 'th', { scope: 'col', text: __( 'Contesto', 'ept' ) } ),
@@ -931,7 +931,7 @@
 				setDirty( true );
 			},
 		} );
-		const checkbox = link.translatable
+		const checkbox = link.choosable
 			? el( 'input', {
 				type: 'checkbox',
 				checked: st.mode !== 'keep',
@@ -958,7 +958,7 @@
 			el( 'td', {}, [ el( 'strong', { text: link.widget } ), link.context ? el( 'div', { className: 'description', text: link.context } ) : null ] ),
 			el( 'td', {}, [ el( 'code', { className: 'ept-url', text: link.original } ) ] ),
 			el( 'td', {}, [ link.translatable ? el( 'code', { className: 'ept-url', text: link.proposed } ) : el( 'span', { text: __( 'resta uguale', 'ept' ) } ), info ] ),
-			el( 'td', {}, [ checkbox ] ),
+			el( 'td', {}, [ checkbox || el( 'span', { title: __( 'Questo tipo di link non si traduce: se serve, usa l\'URL manuale.', 'ept' ), 'aria-label': __( 'Non traducibile', 'ept' ), text: '—' } ) ] ),
 			el( 'td', {}, [ manual ] ),
 		] );
 	}

@@ -152,7 +152,7 @@
 	}
 
 	function render() {
-		app.replaceChildren(
+		app.replaceChildren( ...[
 			el( 'div', { id: 'ept-notices' } ),
 			renderRelink(),
 			renderHeader(),
@@ -160,7 +160,7 @@
 			renderStrings(),
 			renderLinks(),
 			renderFooter()
-		);
+		].filter( Boolean ) );
 		updateProgress();
 		applyFilter();
 	}
@@ -572,25 +572,74 @@
 		render();
 	}
 
-	function renderStrings() {
-		const wrap = el( 'div', { className: 'ept-strings' } );
-		wrap.appendChild( el( 'h2', { text: __( 'Testi', 'ept' ) } ) );
-		if ( ! data.strings.length ) {
-			wrap.appendChild( el( 'p', { text: __( 'Nessun testo da tradurre in questa pagina.', 'ept' ) } ) );
-			return wrap;
-		}
-		let currentGroup = null;
-		let table = null;
-		data.strings.forEach( ( row ) => {
-			if ( row.group !== currentGroup ) {
-				currentGroup = row.group;
-				wrap.appendChild( el( 'h3', { className: 'ept-group', text: sprintf( __( 'Sezione %d', 'ept' ), row.group ) } ) );
-				table = el( 'div', { className: 'ept-rows' } );
-				wrap.appendChild( table );
+	/* ------------------------------------------------------------------ */
+	/* Collapsible panels (native <details>: keyboard and screen readers)   */
+	/* ------------------------------------------------------------------ */
+
+	const PANELS_KEY = 'ept-screen-panels';
+	let panels = null; // id => open (remembered in this browser only)
+
+	function panelState() {
+		if ( panels === null ) {
+			try {
+				panels = JSON.parse( window.localStorage.getItem( PANELS_KEY ) || '{}' ) || {};
+			} catch ( e ) {
+				panels = {};
 			}
-			table.appendChild( renderRow( row ) );
+		}
+		return panels;
+	}
+
+	function panel( id, heading, title, count, defaultOpen, children ) {
+		const state = panelState();
+		const open = Object.prototype.hasOwnProperty.call( state, id ) ? !! state[ id ] : defaultOpen;
+		const node = el( 'details', { className: 'ept-panel ept-panel--' + heading, open, 'data-panel': id }, [
+			el( 'summary', {}, [
+				el( heading, { className: 'ept-panel-title', text: title } ),
+				count ? el( 'span', { className: 'ept-panel-count', id: 'ept-count-' + id, text: count } ) : null,
+			] ),
+		].concat( children ) );
+		node.addEventListener( 'toggle', () => {
+			panelState()[ id ] = node.open;
+			try {
+				window.localStorage.setItem( PANELS_KEY, JSON.stringify( panelState() ) );
+			} catch ( e ) {
+				// Storage unavailable (private window): the state just is not remembered.
+			}
 		} );
-		return wrap;
+		return node;
+	}
+
+	function groupCount( group ) {
+		const rows = data.strings.filter( ( row ) => row.group === group && ! row.dynamic );
+		return sprintf( __( '%1$d di %2$d', 'ept' ), rows.filter( isDone ).length, rows.length );
+	}
+
+	function stringsCount() {
+		const rows = data.strings.filter( ( row ) => ! row.dynamic );
+		return sprintf( __( '%1$d di %2$d tradotti', 'ept' ), rows.filter( isDone ).length, rows.length );
+	}
+
+	function renderStrings() {
+		if ( ! data.strings.length ) {
+			return panel( 'strings', 'h2', __( 'Testi', 'ept' ), '', true, [ el( 'p', { text: __( 'Nessun testo da tradurre in questa pagina.', 'ept' ) } ) ] );
+		}
+		const groups = [];
+		let current = null;
+		data.strings.forEach( ( row ) => {
+			if ( ! current || current.id !== row.group ) {
+				current = { id: row.group, rows: [] };
+				groups.push( current );
+			}
+			current.rows.push( row );
+		} );
+		const children = groups.map( ( group ) => {
+			const list = el( 'div', { className: 'ept-rows' } );
+			group.rows.forEach( ( row ) => list.appendChild( renderRow( row ) ) );
+			const todo = group.rows.some( ( row ) => ! row.dynamic && ( ! isDone( row ) || row.state === 'modified' || rowState[ row.key ].p ) );
+			return panel( 'group-' + group.id, 'h3', sprintf( __( 'Sezione %d', 'ept' ), group.id ), groupCount( group.id ), todo, [ list ] );
+		} );
+		return panel( 'strings', 'h2', __( 'Testi', 'ept' ), stringsCount(), true, children );
 	}
 
 	function rebuildSimple( row, plain ) {
@@ -811,6 +860,16 @@
 			bar.max = Math.max( 1, rows.length );
 			bar.value = done;
 		}
+		const total = document.getElementById( 'ept-count-strings' );
+		if ( total ) {
+			total.textContent = stringsCount();
+		}
+		app.querySelectorAll( '[data-panel^="group-"]' ).forEach( ( node ) => {
+			const counter = node.querySelector( '.ept-panel-count' );
+			if ( counter ) {
+				counter.textContent = groupCount( parseInt( node.getAttribute( 'data-panel' ).slice( 6 ), 10 ) );
+			}
+		} );
 	}
 
 	const LINK_TYPES = {
@@ -830,11 +889,16 @@
 
 	function renderLinks() {
 		const wrap = el( 'div', { className: 'ept-links' } );
-		wrap.appendChild( el( 'h2', { text: __( 'Link', 'ept' ) } ) );
 		const links = data.links || [];
+		const pending = links.filter( ( link ) => link.untranslated || link.changed ).length;
+		let count = sprintf( _n( '%d link', '%d link', links.length, 'ept' ), links.length );
+		if ( pending ) {
+			count += ' · ' + sprintf( _n( '%d da controllare', '%d da controllare', pending, 'ept' ), pending );
+		}
+		const node = panel( 'links', 'h2', __( 'Link', 'ept' ), links.length ? count : '', pending > 0, [ wrap ] );
 		if ( ! links.length ) {
 			wrap.appendChild( el( 'p', { text: __( 'Nessun link in questa pagina.', 'ept' ) } ) );
-			return wrap;
+			return node;
 		}
 		wrap.appendChild( el( 'p', { className: 'description', text: __( 'Ogni link si sceglie singolarmente: "Traduci" usa la proposta; togliendo la spunta il link resta uguale all\'originale; un URL manuale sostituisce entrambi. Le scelte valgono anche per gli aggiornamenti successivi.', 'ept' ) } ) );
 		const table = el( 'table', { className: 'widefat striped ept-links-table' } );
@@ -849,7 +913,7 @@
 		links.forEach( ( link ) => body.appendChild( renderLinkRow( link ) ) );
 		table.appendChild( body );
 		wrap.appendChild( table );
-		return wrap;
+		return node;
 	}
 
 	function renderLinkRow( link ) {

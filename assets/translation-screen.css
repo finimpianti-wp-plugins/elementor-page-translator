@@ -35,11 +35,6 @@
 	margin: 8px 0;
 }
 
-.ept-group {
-	margin: 24px 0 8px;
-	padding-bottom: 4px;
-	border-bottom: 1px solid #c3c4c7;
-}
 
 .ept-row {
 	display: grid;
@@ -149,3 +144,29 @@
 .ept-links-table td { vertical-align: top; }
 .ept-url { word-break: break-all; font-size: 12px; }
 .ept-relink { margin: 12px 0; }
+
+/* Collapsible panels. */
+.ept-panel { margin: 16px 0; }
+.ept-panel > summary {
+	cursor: pointer;
+	display: flex;
+	align-items: baseline;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid #c3c4c7;
+	list-style: none;
+}
+.ept-panel > summary::-webkit-details-marker { display: none; }
+.ept-panel > summary::before {
+	content: "\25B8";
+	display: inline-block;
+	width: 1em;
+	transition: transform .15s;
+}
+.ept-panel[open] > summary::before { transform: rotate(90deg); }
+.ept-panel > summary:focus-visible { outline: 2px solid #2271b1; outline-offset: 2px; }
+.ept-panel-title { display: inline; margin: 0; }
+.ept-panel-count { color: #50575e; }
+.ept-panel--h3 { margin: 8px 0 8px 16px; }
+.ept-panel--h3 > summary { border-bottom-color: #dcdcde; }
+.ept-panel > .ept-rows, .ept-panel > .ept-links { margin-top: 8px; }

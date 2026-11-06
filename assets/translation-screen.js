@@ -253,8 +253,14 @@
 				' · ',
 				el( 'a', { href: data.target.elementor_link, text: __( 'Apri in Elementor', 'ept' ) } ),
 			] );
+			if ( data.target.state === 'outdated' ) {
+				links.appendChild( el( 'span', { className: 'ept-tag ept-tag--warn', text: __( 'da aggiornare', 'ept' ) } ) );
+			}
 			if ( data.target.incomplete > 0 ) {
 				links.appendChild( el( 'span', { className: 'ept-tag ept-tag--warn', text: __( 'incompleta', 'ept' ) } ) );
+			}
+			if ( data.target.manual_changes ) {
+				links.appendChild( el( 'span', { className: 'ept-tag ept-tag--warn', text: __( 'modificata a mano in Elementor', 'ept' ) } ) );
 			}
 			grid.appendChild( field( null, __( 'Pagina tradotta', 'ept' ), links ) );
 		} else {
@@ -441,6 +447,32 @@
 		const warning = el( 'p', { className: 'ept-warning ept-tags-warning', hidden: true, text: __( 'Attenzione: il numero di tag HTML è diverso dall\'originale.', 'ept' ) } );
 		side.appendChild( warning );
 
+		if ( row.suggestion && st.t.trim() === '' && st.s === '' ) {
+			const usePlain = st.simple && row.suggestion.plain !== null;
+			const box = el( 'div', { className: 'ept-suggestion' }, [
+				el( 'span', { className: 'ept-tag ept-tag--suggest', text: __( 'Dalla memoria traduzioni', 'ept' ) } ),
+				el( 'span', { className: usePlain ? '' : 'ept-code', text: ' ' + ( usePlain ? row.suggestion.plain : row.suggestion.html ) + ' ' } ),
+				el( 'button', {
+					type: 'button',
+					className: 'button button-small',
+					text: __( 'Usa', 'ept' ),
+					onClick: () => {
+						st.t = row.suggestion.html;
+						if ( st.simple && usePlain ) {
+							st.plain = row.suggestion.plain;
+						} else {
+							st.simple = false;
+						}
+						st.ok = true;
+						setDirty( true );
+						rowEl.replaceWith( renderRow( row ) );
+						updateProgress();
+					},
+				} ),
+			] );
+			side.appendChild( box );
+		}
+
 		const controls = el( 'div', { className: 'ept-row-controls' } );
 		controls.appendChild(
 			el( 'label', {}, [
@@ -603,7 +635,7 @@
 		}
 	}
 
-	function save( generate, confirm ) {
+	function save( generate, confirm, overwrite ) {
 		if ( busy ) {
 			return;
 		}
@@ -612,7 +644,7 @@
 			return;
 		}
 		setBusy( true );
-		wp.apiFetch( { path: path( generate ? '/generate' : '' ), method: 'POST', data: body( confirm ) } )
+		wp.apiFetch( { path: path( generate ? '/generate' : '' ), method: 'POST', data: Object.assign( body( confirm ), { overwrite: !! overwrite } ) } )
 			.then( ( response ) => {
 				setBusy( false );
 				setData( response.screen );
@@ -636,7 +668,13 @@
 				setBusy( false );
 				if ( error.code === 'ept_incomplete' ) {
 					if ( window.confirm( error.message + '\n\n' + __( 'Creare o aggiornare la pagina comunque?', 'ept' ) ) ) {
-						save( true, true );
+						save( true, true, overwrite );
+					}
+					return;
+				}
+				if ( error.code === 'ept_manual_changes' ) {
+					if ( window.confirm( error.message + '\n\n' + __( 'Aggiornare comunque e sovrascrivere le modifiche manuali?', 'ept' ) ) ) {
+						save( true, confirm, true );
 					}
 					return;
 				}

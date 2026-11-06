@@ -34,6 +34,9 @@ final class Pages_List {
 		add_action( 'restrict_manage_posts', array( self::class, 'language_filter' ) );
 		add_action( 'pre_get_posts', array( self::class, 'apply_language_filter' ) );
 		add_action( 'admin_head-edit.php', array( self::class, 'styles' ) );
+		add_filter( 'bulk_actions-edit-page', array( self::class, 'bulk_actions' ) );
+		add_filter( 'handle_bulk_actions-edit-page', array( self::class, 'handle_bulk_sync' ), 10, 3 );
+		add_action( 'admin_notices', array( self::class, 'bulk_sync_notice' ) );
 	}
 
 	/**
@@ -112,23 +115,130 @@ final class Pages_List {
 			echo '<span aria-hidden="true">—</span>';
 			return;
 		}
-		$map = Translations::map( $post_id );
 		foreach ( Languages::active() as $code => $lang ) {
-			$exists = isset( $map[ $code ] );
-			$label  = $exists
+			$state = Translations::status( $post_id, (string) $code );
+			$view  = array(
 				/* translators: %s: language name. */
-				? sprintf( __( '%s: tradotta', 'ept' ), $lang['name'] )
+				Translations::STATE_OK       => array( 'ept-badge--ok', '&#10003;', __( '%s: aggiornata', 'ept' ) ),
 				/* translators: %s: language name. */
-				: sprintf( __( '%s: mancante', 'ept' ), $lang['name'] );
+				Translations::STATE_OUTDATED => array( 'ept-badge--outdated', '!', __( '%s: da aggiornare', 'ept' ) ),
+				/* translators: %s: language name. */
+				Translations::STATE_MISSING  => array( 'ept-badge--missing', '+', __( '%s: mancante', 'ept' ) ),
+			)[ $state ];
+			$label = sprintf( $view[2], $lang['name'] );
 			printf(
 				'<a class="ept-badge %1$s" href="%2$s" title="%3$s" aria-label="%3$s">%4$s %5$s</a> ',
-				esc_attr( $exists ? 'ept-badge--ok' : 'ept-badge--missing' ),
+				esc_attr( $view[0] ),
 				esc_url( Translation_Screen::url( $post_id, (string) $code ) ),
 				esc_attr( $label ),
 				esc_html( strtoupper( (string) $code ) ),
-				$exists ? '&#10003;' : '+'
+				$view[1] // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed entity from the array above.
 			);
 		}
+	}
+
+	/**
+	 * Bulk action "Sincronizza traduzioni".
+	 *
+	 * @param array<string,string> $actions Actions.
+	 * @return array<string,string>
+	 */
+	public static function bulk_actions( $actions ) {
+		if ( Languages::active() ) {
+			$actions['ept_sync'] = __( 'Sincronizza traduzioni', 'ept' );
+		}
+		return $actions;
+	}
+
+	/**
+	 * Quick update of the translations of the selected Italian pages.
+	 *
+	 * @param string    $redirect Redirect URL.
+	 * @param string    $action   Action.
+	 * @param list<int> $post_ids Selected pages.
+	 */
+	public static function handle_bulk_sync( $redirect, $action, $post_ids ): string {
+		if ( 'ept_sync' !== $action ) {
+			return $redirect;
+		}
+		$report = array(
+			'synced'         => array(),
+			'needs_screen'   => array(),
+			'manual_changes' => array(),
+			'error'          => array(),
+			'up_to_date'     => 0,
+		);
+		foreach ( array_map( 'intval', (array) $post_ids ) as $post_id ) {
+			$post = get_post( $post_id );
+			if ( ! $post instanceof WP_Post || ! self::is_translatable( $post ) || ! current_user_can( 'edit_page', $post_id ) ) {
+				continue;
+			}
+			foreach ( array_keys( Languages::active() ) as $code ) {
+				$target = Translations::get_id( $post_id, (string) $code );
+				if ( null === $target || ! current_user_can( 'edit_page', $target ) ) {
+					continue;
+				}
+				$result = \EPT\Translation_Service::quick_sync( $post, (string) $code );
+				if ( 'up_to_date' === $result['result'] ) {
+					++$report['up_to_date'];
+					continue;
+				}
+				$report[ $result['result'] ][] = array(
+					'post'    => $post_id,
+					'lang'    => (string) $code,
+					'new'     => $result['new'],
+					'changed' => $result['modified'],
+					'message' => $result['message'],
+				);
+			}
+		}
+		set_transient( 'ept_bulk_sync_' . get_current_user_id(), $report, 5 * MINUTE_IN_SECONDS );
+		return add_query_arg( 'ept_synced', '1', $redirect );
+	}
+
+	/**
+	 * Report of the bulk synchronisation.
+	 */
+	public static function bulk_sync_notice(): void {
+		if ( empty( $_GET['ept_synced'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
+			return;
+		}
+		$key    = 'ept_bulk_sync_' . get_current_user_id();
+		$report = get_transient( $key );
+		if ( ! is_array( $report ) ) {
+			return;
+		}
+		delete_transient( $key );
+
+		$item = static function ( array $row ): string {
+			$link = '<a href="' . esc_url( Translation_Screen::url( (int) $row['post'], (string) $row['lang'] ) ) . '">' . esc_html( get_the_title( (int) $row['post'] ) . ' — ' . strtoupper( (string) $row['lang'] ) ) . '</a>';
+			if ( $row['new'] || $row['changed'] ) {
+				/* translators: 1: new texts, 2: modified texts. */
+				$link .= ' ' . esc_html( sprintf( __( '(%1$d nuovi, %2$d modificati)', 'ept' ), $row['new'], $row['changed'] ) );
+			}
+			return '<li>' . $link . '</li>';
+		};
+
+		$type = $report['needs_screen'] || $report['manual_changes'] || $report['error'] ? 'warning' : 'success';
+		echo '<div class="notice notice-' . esc_attr( $type ) . ' is-dismissible">';
+		/* translators: 1: synced translations, 2: translations already up to date. */
+		echo '<p>' . esc_html( sprintf( __( 'Traduzioni aggiornate: %1$d. Già aggiornate: %2$d.', 'ept' ), count( $report['synced'] ), $report['up_to_date'] ) ) . '</p>';
+		$sections = array(
+			'needs_screen'   => __( 'Ci sono testi nuovi o modificati: apri la schermata di traduzione.', 'ept' ),
+			'manual_changes' => __( 'Modificate a mano in Elementor: aggiornale dalla schermata di traduzione, che chiede conferma.', 'ept' ),
+			'error'          => __( 'Errore durante l\'aggiornamento:', 'ept' ),
+		);
+		foreach ( $sections as $section => $title ) {
+			if ( empty( $report[ $section ] ) ) {
+				continue;
+			}
+			echo '<p><strong>' . esc_html( $title ) . '</strong></p><ul style="list-style:disc;margin-left:2em">';
+			foreach ( $report[ $section ] as $row ) {
+				echo $item( $row ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $item.
+			}
+			echo '</ul>';
+		}
+		echo '</div>';
 	}
 
 	/**
@@ -213,6 +323,7 @@ final class Pages_List {
 			.ept-badge{display:inline-block;padding:1px 6px;margin:0 2px 2px 0;border-radius:3px;font-size:11px;line-height:18px;text-decoration:none;border:1px solid #c3c4c7;color:#1d2327;background:#f6f7f7}
 			.ept-badge--ok{background:#edfaef;border-color:#68de7c;color:#00450c}
 			.ept-badge--missing{background:#fff;color:#50575e}
+			.ept-badge--outdated{background:#fcf0d4;border-color:#dba617;color:#6e4c00;font-weight:600}
 			.ept-badge--lang{background:#f0f6fc;border-color:#72aee6;color:#0a4b78;font-weight:600}
 		</style>';
 	}

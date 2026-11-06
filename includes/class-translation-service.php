@@ -179,6 +179,14 @@ final class Translation_Service {
 		$groups = array();
 		$done   = 0;
 		$total  = 0;
+		// Suggestions from the translation memory for texts never translated on this page.
+		$suggest = Memory::suggestions(
+			$lang,
+			array_map(
+				static fn( array $item ): string => $item['hash'],
+				array_filter( $extracted['strings'], static fn( array $item ): bool => ! $item['dynamic'] && ! isset( $saved[ $item['key'] ] ) )
+			)
+		);
 		foreach ( $extracted['strings'] as $item ) {
 			if ( ! in_array( $item['group'], $groups, true ) ) {
 				$groups[] = $item['group'];
@@ -224,6 +232,7 @@ final class Translation_Service {
 				'status'       => is_array( $entry ) ? (string) ( $entry['s'] ?? '' ) : '',
 				'state'        => $state,
 				'old_original' => $old,
+				'suggestion'   => self::suggestion_for( $item, $state, $suggest, $simple, $space ),
 			);
 			$rows[] = $row;
 			if ( ! $item['dynamic'] ) {
@@ -285,6 +294,34 @@ final class Translation_Service {
 	}
 
 	/**
+	 * Memory suggestion for a new row (HTML and, when it shares the wrapper, plain text).
+	 *
+	 * @param array<string,mixed>       $item    Extracted string.
+	 * @param string                    $state   Row state.
+	 * @param array<string,string>      $suggest hash => translation.
+	 * @param array<string,string>|null $simple  Simplified original, if any.
+	 * @param bool                      $space   Raw newline is a space.
+	 * @return array{html:string, plain:?string}|null
+	 */
+	private static function suggestion_for( array $item, string $state, array $suggest, ?array $simple, bool $space ): ?array {
+		if ( 'new' !== $state || $item['dynamic'] || ! isset( $suggest[ $item['hash'] ] ) ) {
+			return null;
+		}
+		$html  = $suggest[ $item['hash'] ];
+		$plain = null;
+		if ( null !== $simple ) {
+			$a = Simple_Text::analyze( Html_Tools::strip_noise( $html ), $space );
+			if ( null !== $a && $a['prefix'] === $simple['prefix'] && $a['suffix'] === $simple['suffix'] ) {
+				$plain = $a['text'];
+			}
+		}
+		return array(
+			'html'  => $html,
+			'plain' => $plain,
+		);
+	}
+
+	/**
 	 * Existing translation of a page: linked page, or the root page for the front page.
 	 *
 	 * @param int    $source_id Italian page ID.
@@ -309,6 +346,8 @@ final class Translation_Service {
 			'elementor_link' => admin_url( 'post.php?post=' . $target->ID . '&action=elementor' ),
 			'view_link'      => 'publish' === $target->post_status ? (string) get_permalink( $target ) : (string) get_preview_post_link( $target ),
 			'incomplete'     => (int) get_post_meta( $target->ID, Translations::META_INCOMPLETE, true ),
+			'manual_changes' => Translations::has_manual_changes( $target->ID ),
+			'state'          => Translations::status( Translations::source_of( $target->ID ), Translations::language_of( $target->ID ) ),
 		);
 	}
 
@@ -413,10 +452,11 @@ final class Translation_Service {
 	 * @param WP_Post             $source  Italian page.
 	 * @param string              $lang    Language.
 	 * @param array<string,mixed> $input   Request body (saved first, as a draft).
-	 * @param bool                $confirm Confirm generation with missing translations.
+	 * @param bool                $confirm   Confirm generation with missing translations.
+	 * @param bool                $overwrite Confirm overwriting manual changes made in Elementor.
 	 * @return array<string,mixed>|WP_Error
 	 */
-	public static function generate( WP_Post $source, string $lang, array $input, bool $confirm ) {
+	public static function generate( WP_Post $source, string $lang, array $input, bool $confirm, bool $overwrite = false ) {
 		if ( ! class_exists( '\Elementor\Plugin' ) ) {
 			return new WP_Error( 'ept_no_elementor', __( 'Elementor non è attivo.', 'ept' ), array( 'status' => 500 ) );
 		}
@@ -440,6 +480,8 @@ final class Translation_Service {
 		$saved     = Translations::strings( $source->ID, $lang );
 		$texts     = array();
 		$missing   = 0;
+		$missing_k = array();
+		$memory    = array();
 		foreach ( $extracted['strings'] as $item ) {
 			if ( $item['dynamic'] ) {
 				continue;
@@ -447,9 +489,14 @@ final class Translation_Service {
 			$entry = $saved[ $item['key'] ] ?? null;
 			$final = $item['text'];
 			if ( is_array( $entry ) && Translations::STATUS_TRANSLATED === ( $entry['s'] ?? '' ) && '' !== (string) $entry['t'] ) {
-				$final = (string) $entry['t'];
+				$final    = (string) $entry['t'];
+				$memory[] = array(
+					'text'        => $item['text'],
+					'translation' => $final,
+				);
 			} elseif ( ! is_array( $entry ) ) {
 				++$missing;
+				$missing_k[] = $item['key'];
 			}
 			$final = Widget_Map::CODE === $item['format'] ? $final : Html_Tools::strip_noise( $final );
 			if ( $final !== $item['text'] ) {
@@ -468,6 +515,15 @@ final class Translation_Service {
 					'status'  => 409,
 					'missing' => $missing,
 				)
+			);
+		}
+
+		$existing = self::target_id( $source->ID, $lang );
+		if ( null !== $existing && ! $overwrite && Translations::has_manual_changes( $existing ) ) {
+			return new WP_Error(
+				'ept_manual_changes',
+				__( 'La pagina tradotta è stata modificata a mano in Elementor dopo l\'ultima generazione: aggiornandola, quelle modifiche andranno perse (restano recuperabili dalle revisioni).', 'ept' ),
+				array( 'status' => 409 )
 			);
 		}
 
@@ -535,8 +591,11 @@ final class Translation_Service {
 			return new WP_Error( 'ept_save', __( 'Elementor non ha salvato la pagina tradotta (permessi insufficienti?).', 'ept' ), array( 'status' => 403 ) );
 		}
 
-		update_post_meta( $target_id, Translations::META_SOURCE_HASH, Translations::data_hash( $source->ID ) );
+		update_post_meta( $target_id, Translations::META_SOURCE_HASH, Translations::source_fingerprint( $source->ID ) );
 		update_post_meta( $target_id, Translations::META_OUTPUT_HASH, Translations::data_hash( $target_id ) );
+		update_post_meta( $target_id, Translations::META_STRINGS_HASH, Translations::strings_hash( $source->ID, $lang ) );
+		update_post_meta( $target_id, Translations::META_MISSING_KEYS, $missing_k );
+		Memory::store( $lang, $memory, $source->ID );
 		if ( $missing > 0 ) {
 			update_post_meta( $target_id, Translations::META_INCOMPLETE, $missing );
 		} else {
@@ -562,6 +621,61 @@ final class Translation_Service {
 			'failed'    => $rebuilt['failed'],
 			'target'    => $target ? self::target_info( $target ) : null,
 		);
+	}
+
+	/**
+	 * Quick update from the pages list: regenerate a translation when the Italian page
+	 * changed only in structure or style. Stops when there are new or modified texts
+	 * (texts already missing at the last generation do not count) or manual changes.
+	 *
+	 * @param WP_Post $source Italian page.
+	 * @param string  $lang   Language.
+	 * @return array{result: string, new: int, modified: int, message: string}
+	 *         result: synced | up_to_date | needs_screen | manual_changes | error.
+	 */
+	public static function quick_sync( WP_Post $source, string $lang ): array {
+		$out    = array(
+			'result'   => 'error',
+			'new'      => 0,
+			'modified' => 0,
+			'message'  => '',
+		);
+		$target = Translations::get_id( $source->ID, $lang );
+		if ( null === $target ) {
+			$out['message'] = __( 'Traduzione inesistente.', 'ept' );
+			return $out;
+		}
+		if ( Translations::STATE_OK === Translations::status( $source->ID, $lang ) ) {
+			$out['result'] = 'up_to_date';
+			return $out;
+		}
+		$saved     = Translations::strings( $source->ID, $lang );
+		$was_empty = (array) get_post_meta( $target, Translations::META_MISSING_KEYS, true );
+		foreach ( Content::extractor()->extract( Content::elements( $source->ID ) )['strings'] as $item ) {
+			if ( $item['dynamic'] ) {
+				continue;
+			}
+			$entry = $saved[ $item['key'] ] ?? null;
+			if ( ! is_array( $entry ) ) {
+				if ( ! in_array( $item['key'], $was_empty, true ) ) {
+					++$out['new'];
+				}
+			} elseif ( ( $entry['h'] ?? '' ) !== $item['hash'] ) {
+				++$out['modified'];
+			}
+		}
+		if ( $out['new'] > 0 || $out['modified'] > 0 ) {
+			$out['result'] = 'needs_screen';
+			return $out;
+		}
+		$result = self::generate( $source, $lang, array(), true, false );
+		if ( is_wp_error( $result ) ) {
+			$out['result']  = 'ept_manual_changes' === $result->get_error_code() ? 'manual_changes' : 'error';
+			$out['message'] = $result->get_error_message();
+			return $out;
+		}
+		$out['result'] = 'synced';
+		return $out;
 	}
 
 	/**

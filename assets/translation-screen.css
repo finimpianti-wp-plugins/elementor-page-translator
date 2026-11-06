@@ -125,3 +125,16 @@
 		grid-template-areas: "meta" "original" "translation";
 	}
 }
+
+.ept-suggestion {
+	margin-top: 6px;
+	padding: 6px 8px;
+	background: #f0f6fc;
+	border: 1px dashed #72aee6;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.ept-tag--suggest { background: #dbeafe; color: #0a4b78; }

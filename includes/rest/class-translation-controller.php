@@ -155,9 +155,10 @@ final class Translation_Controller {
 		if ( is_wp_error( $source ) ) {
 			return $source;
 		}
-		$body    = (array) $request->get_json_params();
-		$confirm = ! empty( $body['confirm'] ) || (bool) $request['confirm'];
-		$result  = Translation_Service::generate( $source, (string) $request['lang'], $body, $confirm );
+		$body      = (array) $request->get_json_params();
+		$confirm   = ! empty( $body['confirm'] ) || (bool) $request['confirm'];
+		$overwrite = ! empty( $body['overwrite'] );
+		$result    = Translation_Service::generate( $source, (string) $request['lang'], $body, $confirm, $overwrite );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}

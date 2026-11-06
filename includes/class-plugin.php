@@ -30,6 +30,7 @@ final class Plugin {
 			Admin\Census_Page::init();
 			Admin\Pages_List::init();
 			Admin\Translation_Screen::init();
+			Admin\Editor_Notice::init();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

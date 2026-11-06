@@ -26,12 +26,21 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Translations {
 
-	public const META_MAP         = '_ept_translations';
-	public const META_LANG        = '_ept_lang';
-	public const META_SOURCE      = '_ept_source_id';
-	public const META_SOURCE_HASH = '_ept_synced_source_hash';
-	public const META_OUTPUT_HASH = '_ept_synced_output_hash';
-	public const META_INCOMPLETE  = '_ept_incomplete';
+	public const META_MAP          = '_ept_translations';
+	public const META_LANG         = '_ept_lang';
+	public const META_SOURCE       = '_ept_source_id';
+	public const META_SOURCE_HASH  = '_ept_synced_source_hash';
+	public const META_OUTPUT_HASH  = '_ept_synced_output_hash';
+	public const META_INCOMPLETE   = '_ept_incomplete';
+	public const META_STRINGS_HASH = '_ept_synced_strings_hash';
+	public const META_MISSING_KEYS = '_ept_missing_keys';
+
+	/**
+	 * Translation statuses for the pages list.
+	 */
+	public const STATE_OK       = 'ok';
+	public const STATE_OUTDATED = 'outdated';
+	public const STATE_MISSING  = 'missing';
 
 	/**
 	 * Row statuses of a string.
@@ -173,5 +182,61 @@ final class Translations {
 	public static function data_hash( int $post_id ): string {
 		$raw = get_post_meta( $post_id, '_elementor_data', true );
 		return sha1( is_string( $raw ) ? $raw : (string) wp_json_encode( $raw ) );
+	}
+
+	/**
+	 * Fingerprint of everything a translation is generated from on the Italian side:
+	 * Elementor data, page settings, page template and featured image.
+	 *
+	 * @param int $source_id Italian page ID.
+	 */
+	public static function source_fingerprint( int $source_id ): string {
+		return sha1(
+			self::data_hash( $source_id ) . '|' .
+			(string) wp_json_encode( get_post_meta( $source_id, '_elementor_page_settings', true ) ) . '|' .
+			(string) get_post_meta( $source_id, '_wp_page_template', true ) . '|' .
+			(string) get_post_meta( $source_id, '_thumbnail_id', true )
+		);
+	}
+
+	/**
+	 * Hash of the saved strings and page fields of a language (to spot drafts not yet applied).
+	 *
+	 * @param int    $source_id Italian page ID.
+	 * @param string $lang      Language.
+	 */
+	public static function strings_hash( int $source_id, string $lang ): string {
+		return sha1( (string) wp_json_encode( array( self::strings( $source_id, $lang ), self::page_fields( $source_id, $lang ) ) ) );
+	}
+
+	/**
+	 * Status of a translation: ok, outdated (Italian page or draft changed since the last
+	 * generation) or missing.
+	 *
+	 * @param int    $source_id Italian page ID.
+	 * @param string $lang      Language.
+	 */
+	public static function status( int $source_id, string $lang ): string {
+		$target = self::get_id( $source_id, $lang );
+		if ( null === $target ) {
+			return self::STATE_MISSING;
+		}
+		if ( get_post_meta( $target, self::META_SOURCE_HASH, true ) !== self::source_fingerprint( $source_id ) ) {
+			return self::STATE_OUTDATED;
+		}
+		if ( get_post_meta( $target, self::META_STRINGS_HASH, true ) !== self::strings_hash( $source_id, $lang ) ) {
+			return self::STATE_OUTDATED;
+		}
+		return self::STATE_OK;
+	}
+
+	/**
+	 * Whether the translated page was edited by hand since the last generation.
+	 *
+	 * @param int $target_id Translated page ID.
+	 */
+	public static function has_manual_changes( int $target_id ): bool {
+		$stored = (string) get_post_meta( $target_id, self::META_OUTPUT_HASH, true );
+		return '' !== $stored && self::data_hash( $target_id ) !== $stored;
 	}
 }

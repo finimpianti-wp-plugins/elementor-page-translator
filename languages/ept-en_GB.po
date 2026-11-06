@@ -1,0 +1,18 @@
+# Front-end strings of Elementor Page Translator (language switcher).
+# Other strings can be added with Loco Translate.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en_GB\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: ept\n"
+
+msgid "Lingua"
+msgstr "Language"
+
+#. translators: %s: current language name.
+msgid "Lingua: %s. Cambia lingua"
+msgstr "Language: %s. Change language"
+
+msgid "(non pubblica)"
+msgstr "(not public)"

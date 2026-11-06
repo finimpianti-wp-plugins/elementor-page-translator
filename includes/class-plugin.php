@@ -24,6 +24,9 @@ final class Plugin {
 		Root_Pages::init();
 		Rest\Translation_Controller::init();
 		Link_Updater::init();
+		Current_Language::init();
+		Switcher::init();
+		Uae_Breadcrumbs::init();
 
 		if ( is_admin() ) {
 			Admin\Notices::init();

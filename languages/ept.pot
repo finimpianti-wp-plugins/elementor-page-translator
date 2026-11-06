@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.7.3\n"
+"Project-Id-Version: Elementor Page Translator 0.8.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-06T18:07:04+00:00\n"
+"POT-Creation-Date: 2026-11-06T18:19:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -637,6 +637,21 @@ msgstr ""
 msgid "Questa è la pagina radice della lingua %s: non si può cestinare, eliminare né cambiarne slug o genitore finché la lingua è attiva. Disattiva prima la lingua in Impostazioni → Traduzioni."
 msgstr ""
 
+#: includes/class-switcher.php:269
+msgid "(non pubblica)"
+msgstr ""
+
+#: includes/class-switcher.php:318
+#: assets/translation-screen.js:193
+msgid "Lingua"
+msgstr ""
+
+#. translators: %s: current language name.
+#: includes/class-switcher.php:355
+#, php-format
+msgid "Lingua: %s. Cambia lingua"
+msgstr ""
+
 #: includes/class-translation-service.php:31
 msgid "Titolo"
 msgstr ""
@@ -799,10 +814,6 @@ msgstr ""
 
 #: assets/translation-screen.js:190
 msgid "Pagina originale:"
-msgstr ""
-
-#: assets/translation-screen.js:193
-msgid "Lingua"
 msgstr ""
 
 #: assets/translation-screen.js:195

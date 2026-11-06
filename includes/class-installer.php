@@ -17,7 +17,7 @@ final class Installer {
 	/**
 	 * Bump when the schema or stored data change; add a step to migrations().
 	 */
-	public const DB_VERSION = 1;
+	public const DB_VERSION = 2;
 
 	public const DB_VERSION_OPTION = 'ept_db_version';
 
@@ -81,6 +81,9 @@ final class Installer {
 			1 => static function (): void {
 				// Initial schema: tables are created by create_tables().
 			},
+			2 => static function (): void {
+				// Link index gains "state" (translated | italian | manual): created by dbDelta in create_tables().
+			},
 		);
 	}
 
@@ -124,7 +127,9 @@ final class Installer {
 ) $charset;"
 		);
 
-		// Link index: which translated page links to which target page (IDs only, never URLs).
+		// Link index: which translated page (source_post_id) links to which Italian page (target_post_id),
+		// and whether the link points to its translation, still to the Italian page, or to a manual URL.
+		// IDs only, never URLs.
 		dbDelta(
 			"CREATE TABLE {$t['link_index']} (
   id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -132,6 +137,7 @@ final class Installer {
   target_post_id bigint(20) unsigned NOT NULL,
   lang varchar(20) NOT NULL,
   link_key varchar(191) NOT NULL,
+  state varchar(20) NOT NULL DEFAULT 'translated',
   PRIMARY KEY  (id),
   UNIQUE KEY source_link (source_post_id,link_key),
   KEY target (target_post_id,lang)

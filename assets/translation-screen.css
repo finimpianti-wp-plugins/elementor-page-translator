@@ -144,3 +144,8 @@
 
 /* The hidden attribute must win over display rules of tags and warnings. */
 .ept-screen [hidden] { display: none !important; }
+
+.ept-links { margin-top: 24px; }
+.ept-links-table td { vertical-align: top; }
+.ept-url { word-break: break-all; font-size: 12px; }
+.ept-relink { margin: 12px 0; }

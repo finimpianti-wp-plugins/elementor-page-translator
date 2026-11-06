@@ -23,6 +23,7 @@ final class Plugin {
 		Installer::maybe_upgrade();
 		Root_Pages::init();
 		Rest\Translation_Controller::init();
+		Link_Updater::init();
 
 		if ( is_admin() ) {
 			Admin\Notices::init();

@@ -75,6 +75,16 @@ final class Translation_Controller {
 		self::register_propose( $args );
 		register_rest_route(
 			self::NAMESPACE,
+			'/translations/(?P<id>\d+)/(?P<lang>[a-z0-9-]+)/relink',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( self::class, 'relink' ),
+				'permission_callback' => array( self::class, 'can_translate' ),
+				'args'                => $args,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
 			'/translations/(?P<id>\d+)/(?P<lang>[a-z0-9-]+)/generate',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -153,6 +163,32 @@ final class Translation_Controller {
 				'sent'   => $result['sent'],
 				'usage'  => Proposals::usage_summary(),
 				'screen' => Translation_Service::screen_data( $source, $lang ),
+			)
+		);
+	}
+
+	/**
+	 * POST update the links of the pages that still point to the Italian version of this page.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function relink( WP_REST_Request $request ) {
+		$source = Translation_Service::validate( (int) $request['id'], (string) $request['lang'] );
+		if ( is_wp_error( $source ) ) {
+			return $source;
+		}
+		$lang    = (string) $request['lang'];
+		$updated = array();
+		foreach ( Translation_Service::relink_candidates( $source->ID, $lang ) as $page ) {
+			if ( \EPT\Links::relink( $page['id'] ) ) {
+				$updated[] = $page;
+			}
+		}
+		return rest_ensure_response(
+			array(
+				'updated' => $updated,
+				'screen'  => Translation_Service::screen_data( $source, $lang ),
 			)
 		);
 	}

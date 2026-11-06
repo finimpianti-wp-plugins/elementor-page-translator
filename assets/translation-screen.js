@@ -24,6 +24,7 @@
 	let allSame = false;
 	let bulkBackup = null; // key => previous choice, while "all same as original" is checked
 	const rowState = {}; // key => { t, s, ok }
+	const linkState = {}; // key => { mode: translate|keep|manual, url }
 
 	/* ------------------------------------------------------------------ */
 	/* Helpers                                                              */
@@ -141,6 +142,9 @@
 				p: row.proposal || '', // unconfirmed automatic proposal: memory | filter | deepl
 			};
 		} );
+		( data.links || [] ).forEach( ( link ) => {
+			linkState[ link.key ] = { mode: link.mode, url: link.manual };
+		} );
 		slugTouched = data.page.slug !== '';
 		allSame = false;
 		bulkBackup = null;
@@ -150,9 +154,11 @@
 	function render() {
 		app.replaceChildren(
 			el( 'div', { id: 'ept-notices' } ),
+			renderRelink(),
 			renderHeader(),
 			renderToolbar(),
 			renderStrings(),
+			renderLinks(),
 			renderFooter()
 		);
 		updateProgress();
@@ -807,6 +813,122 @@
 		}
 	}
 
+	const LINK_TYPES = {
+		page: __( 'Pagina tradotta', 'ept' ),
+		home: __( 'Home della lingua', 'ept' ),
+		page_untranslated: __( 'Pagina non ancora tradotta', 'ept' ),
+		page_unpublished: __( 'Traduzione non pubblicata', 'ept' ),
+		anchor: __( 'Ancora nella pagina', 'ept' ),
+		file: __( 'File', 'ept' ),
+		external: __( 'Esterno', 'ept' ),
+		mailto: __( 'Email', 'ept' ),
+		tel: __( 'Telefono', 'ept' ),
+		post: __( 'Articolo', 'ept' ),
+		internal_unknown: __( 'Interno', 'ept' ),
+		empty: '—',
+	};
+
+	function renderLinks() {
+		const wrap = el( 'div', { className: 'ept-links' } );
+		wrap.appendChild( el( 'h2', { text: __( 'Link', 'ept' ) } ) );
+		const links = data.links || [];
+		if ( ! links.length ) {
+			wrap.appendChild( el( 'p', { text: __( 'Nessun link in questa pagina.', 'ept' ) } ) );
+			return wrap;
+		}
+		wrap.appendChild( el( 'p', { className: 'description', text: __( 'Ogni link si sceglie singolarmente: "Traduci" usa la proposta; togliendo la spunta il link resta uguale all\'originale; un URL manuale sostituisce entrambi. Le scelte valgono anche per gli aggiornamenti successivi.', 'ept' ) } ) );
+		const table = el( 'table', { className: 'widefat striped ept-links-table' } );
+		table.appendChild( el( 'thead', {}, [ el( 'tr', {}, [
+			el( 'th', { scope: 'col', text: __( 'Contesto', 'ept' ) } ),
+			el( 'th', { scope: 'col', text: __( 'URL originale', 'ept' ) } ),
+			el( 'th', { scope: 'col', text: __( 'URL proposto', 'ept' ) } ),
+			el( 'th', { scope: 'col', text: __( 'Traduci', 'ept' ) } ),
+			el( 'th', { scope: 'col', text: __( 'URL manuale', 'ept' ) } ),
+		] ) ] ) );
+		const body = el( 'tbody' );
+		links.forEach( ( link ) => body.appendChild( renderLinkRow( link ) ) );
+		table.appendChild( body );
+		wrap.appendChild( table );
+		return wrap;
+	}
+
+	function renderLinkRow( link ) {
+		const st = linkState[ link.key ];
+		const manual = el( 'input', {
+			type: 'url',
+			className: 'regular-text',
+			value: st.mode === 'manual' ? st.url : '',
+			placeholder: link.type === 'file' ? __( 'Versione nella lingua (facoltativo)', 'ept' ) : '',
+			'aria-label': sprintf( __( 'URL manuale per %s', 'ept' ), link.original ),
+			onInput: ( event ) => {
+				const value = event.target.value.trim();
+				st.url = value;
+				st.mode = value ? 'manual' : ( checkbox && checkbox.checked ? 'translate' : 'keep' );
+				setDirty( true );
+			},
+		} );
+		const checkbox = link.translatable
+			? el( 'input', {
+				type: 'checkbox',
+				checked: st.mode !== 'keep',
+				'aria-label': sprintf( __( 'Traduci il link %s', 'ept' ), link.original ),
+				onChange: ( event ) => {
+					if ( st.mode !== 'manual' ) {
+						st.mode = event.target.checked ? 'translate' : 'keep';
+					}
+					setDirty( true );
+				},
+			} )
+			: null;
+		const info = el( 'div', {}, [ el( 'span', { className: 'ept-tag', text: LINK_TYPES[ link.type ] || link.type } ) ] );
+		if ( link.message ) {
+			info.appendChild( el( 'p', { className: 'description', text: link.message } ) );
+		}
+		if ( link.untranslated ) {
+			info.appendChild( el( 'a', { href: config.screenUrl + '&post=' + link.untranslated + '&lang=' + encodeURIComponent( config.lang ), text: __( 'Traduci quella pagina', 'ept' ) } ) );
+		}
+		if ( link.changed ) {
+			info.appendChild( el( 'p', { className: 'ept-warning', text: __( 'Il link italiano è cambiato: la scelta precedente non vale più.', 'ept' ) } ) );
+		}
+		return el( 'tr', { 'data-link': link.key }, [
+			el( 'td', {}, [ el( 'strong', { text: link.widget } ), link.context ? el( 'div', { className: 'description', text: link.context } ) : null ] ),
+			el( 'td', {}, [ el( 'code', { className: 'ept-url', text: link.original } ) ] ),
+			el( 'td', {}, [ link.translatable ? el( 'code', { className: 'ept-url', text: link.proposed } ) : el( 'span', { text: __( 'resta uguale', 'ept' ) } ), info ] ),
+			el( 'td', {}, [ checkbox ] ),
+			el( 'td', {}, [ manual ] ),
+		] );
+	}
+
+	function renderRelink() {
+		const pages = data.relink || [];
+		if ( ! pages.length ) {
+			return null;
+		}
+		return el( 'div', { className: 'notice notice-warning inline ept-relink' }, [
+			el( 'p', { text: sprintf( _n( '%1$d pagina in %2$s punta ancora alla versione italiana di questa pagina:', '%1$d pagine in %2$s puntano ancora alla versione italiana di questa pagina:', pages.length, 'ept' ), pages.length, data.lang.name ) + ' ' + pages.map( ( page ) => page.title ).join( ', ' ) } ),
+			el( 'p', {}, [ el( 'button', {
+				type: 'button',
+				className: 'button',
+				id: 'ept-relink',
+				text: __( 'Aggiorna i link in queste pagine', 'ept' ),
+				onClick: () => {
+					setBusy( true );
+					wp.apiFetch( { path: path( '/relink' ), method: 'POST', data: {} } )
+						.then( ( response ) => {
+							setBusy( false );
+							setData( response.screen );
+							render();
+							notice( 'success', sprintf( _n( 'Link aggiornati in %d pagina.', 'Link aggiornati in %d pagine.', response.updated.length, 'ept' ), response.updated.length ) );
+						} )
+						.catch( ( error ) => {
+							setBusy( false );
+							notice( 'error', error.message );
+						} );
+				},
+			} ) ] ),
+		] );
+	}
+
 	function renderFooter() {
 		return el( 'div', { className: 'ept-footer' }, [
 			el( 'button', { type: 'button', className: 'button button-secondary', id: 'ept-save', text: __( 'Salva bozza traduzione', 'ept' ), onClick: () => save( false ) } ),
@@ -833,7 +955,11 @@
 				strings[ row.key ] = { t: st.s ? '' : st.t, s: st.s, ok: st.ok, p: st.s ? '' : st.p };
 			}
 		} );
-		return { page: data.page, strings, confirm: !! confirm };
+		const links = {};
+		( data.links || [] ).forEach( ( link ) => {
+			links[ link.key ] = linkState[ link.key ];
+		} );
+		return { page: data.page, strings, links, confirm: !! confirm };
 	}
 
 	function setBusy( value ) {

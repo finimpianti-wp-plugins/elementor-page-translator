@@ -285,6 +285,8 @@ final class Translation_Service {
 			),
 			'parent'         => $parent,
 			'strings'        => $rows,
+			'links'          => Links::screen_rows( $source->ID, $lang, Content::elements( $source->ID ), $extracted['strings'] ),
+			'relink'         => self::relink_candidates( $source->ID, $lang ),
 			'progress'       => array(
 				'done'  => $done,
 				'total' => $total,
@@ -316,6 +318,31 @@ final class Translation_Service {
 			'html'  => $html,
 			'plain' => $plain,
 		);
+	}
+
+	/**
+	 * Pages of the language that still link to the Italian version of this page although
+	 * its translation is now published (candidates for "update links").
+	 *
+	 * @param int    $source_id Italian page ID.
+	 * @param string $lang      Language.
+	 * @return list<array{id:int,title:string}>
+	 */
+	public static function relink_candidates( int $source_id, string $lang ): array {
+		$target = Translations::get_id( $source_id, $lang );
+		if ( null === $target || 'publish' !== get_post_status( $target ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( Links::linking_pages( array( $source_id ), $lang, Links::STATE_ITALIAN ) as $page ) {
+			if ( $page !== $target && current_user_can( 'edit_page', $page ) ) {
+				$out[] = array(
+					'id'    => $page,
+					'title' => get_the_title( $page ),
+				);
+			}
+		}
+		return $out;
 	}
 
 	/**
@@ -405,6 +432,10 @@ final class Translation_Service {
 			}
 		}
 		Translations::save_strings( $source->ID, $lang, $saved );
+
+		if ( isset( $input['links'] ) && is_array( $input['links'] ) ) {
+			Links::save_choices( $source->ID, $lang, $input['links'] );
+		}
 
 		$page   = isset( $input['page'] ) && is_array( $input['page'] ) ? $input['page'] : array();
 		$fields = Translations::page_fields( $source->ID, $lang );
@@ -529,7 +560,8 @@ final class Translation_Service {
 			);
 		}
 
-		$rebuilt = Content::rebuilder()->apply( $elements, $texts );
+		$links   = Links::final_values( $source->ID, $lang, $elements );
+		$rebuilt = Content::rebuilder()->apply( $elements, $texts, $links['values'] );
 
 		// Create or update the WordPress page.
 		$target_id   = self::target_id( $source->ID, $lang );
@@ -598,6 +630,7 @@ final class Translation_Service {
 		update_post_meta( $target_id, Translations::META_STRINGS_HASH, Translations::strings_hash( $source->ID, $lang ) );
 		update_post_meta( $target_id, Translations::META_MISSING_KEYS, $missing_k );
 		Memory::store( $lang, $memory, $source->ID );
+		Links::write_index( $target_id, $lang, $links['index'] );
 		if ( $missing > 0 ) {
 			update_post_meta( $target_id, Translations::META_INCOMPLETE, $missing );
 		} else {
@@ -617,6 +650,7 @@ final class Translation_Service {
 
 		$target = get_post( $target_id );
 		return array(
+			'relink'    => self::relink_candidates( $source->ID, $lang ),
 			'created'   => $created,
 			'missing'   => $missing,
 			'sanitized' => $draft['sanitized'],
@@ -717,7 +751,7 @@ final class Translation_Service {
 	 *
 	 * @param int $post_id Page ID.
 	 */
-	private static function purge_cache( int $post_id ): void {
+	public static function purge_cache( int $post_id ): void {
 		if ( function_exists( 'sg_cachepress_purge_cache' ) && 'publish' === get_post_status( $post_id ) ) {
 			sg_cachepress_purge_cache( (string) get_permalink( $post_id ) );
 		}

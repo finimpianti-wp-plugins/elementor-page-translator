@@ -55,4 +55,21 @@ final class Content {
 		$data = is_string( $raw ) && '' !== $raw ? json_decode( $raw, true ) : array();
 		return is_array( $data ) ? $data : array();
 	}
+
+	/**
+	 * Write Elementor data directly (no user permission needed) and drop the page's
+	 * generated CSS and element cache, which Elementor rebuilds on the next view.
+	 * Used only for link updates on pages whose data was already saved through Elementor.
+	 *
+	 * @param int              $post_id  Post ID.
+	 * @param array<int,mixed> $elements Elements.
+	 */
+	public static function write_elements( int $post_id, array $elements ): void {
+		update_metadata( 'post', $post_id, '_elementor_data', wp_slash( (string) wp_json_encode( $elements ) ) );
+		delete_post_meta( $post_id, '_elementor_element_cache' );
+		if ( class_exists( '\\Elementor\\Core\\Files\\CSS\\Post' ) ) {
+			\Elementor\Core\Files\CSS\Post::create( $post_id )->delete();
+		}
+		clean_post_cache( $post_id );
+	}
 }

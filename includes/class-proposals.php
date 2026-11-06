@@ -30,7 +30,10 @@ final class Proposals {
 	 */
 	public static function client(): ?Deepl {
 		$key = (string) Settings::get( 'deepl_key' );
-		return '' !== trim( $key ) ? new Deepl( $key ) : null;
+		if ( empty( Settings::get( 'deepl_enabled' ) ) || '' === trim( $key ) ) {
+			return null;
+		}
+		return new Deepl( $key, (string) Settings::get( 'deepl_endpoint' ) );
 	}
 
 	/**
@@ -113,7 +116,7 @@ final class Proposals {
 		}
 		if ( ( $texts || $titles ) && null === $client ) {
 			if ( $texts ) {
-				$out['error'] = __( 'Proposte automatiche non disponibili: inserisci la chiave API di DeepL in Impostazioni → Traduzioni. Puoi tradurre comunque a mano.', 'ept' );
+				$out['error'] = __( 'Proposte DeepL non attive (facoltative, Impostazioni → Traduzioni). Puoi tradurre a mano o usare "Copia testi da tradurre" con Google Traduttore.', 'ept' );
 			}
 			return $out;
 		}

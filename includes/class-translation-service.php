@@ -291,6 +291,7 @@ final class Translation_Service {
 			),
 			'can_unfiltered' => current_user_can( 'unfiltered_html' ),
 			'deepl'          => Proposals::usage_summary(),
+			'source_locale'  => (string) Languages::default_language()['locale'],
 			'can_publish'    => current_user_can( 'publish_pages' ),
 		);
 	}
@@ -399,7 +400,7 @@ final class Translation_Service {
 			);
 			// Automatic proposal not yet confirmed by the user (memory, filter or DeepL).
 			$proposal = (string) ( $row['p'] ?? '' );
-			if ( '' !== $text && in_array( $proposal, array( 'memory', 'filter', 'deepl' ), true ) ) {
+			if ( '' !== $text && in_array( $proposal, array( 'memory', 'filter', 'deepl', 'paste' ), true ) ) {
 				$saved[ $key ]['p'] = $proposal;
 			}
 		}

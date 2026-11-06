@@ -332,7 +332,9 @@
 				el( 'input', { type: 'checkbox', id: 'ept-all-same', checked: allSame, onChange: ( event ) => setAllSame( event.target.checked ) } ),
 				' ' + __( 'Tutti i testi uguali all\'originale', 'ept' ),
 			] ),
-			el( 'button', { type: 'button', className: 'button', id: 'ept-propose', text: __( 'Proponi traduzioni', 'ept' ), onClick: () => propose( [], false ) } ),
+			el( 'button', { type: 'button', className: 'button', id: 'ept-copy', text: __( 'Copia testi da tradurre', 'ept' ), onClick: copyTexts } ),
+			el( 'button', { type: 'button', className: 'button', id: 'ept-paste', text: __( 'Incolla traduzioni', 'ept' ), onClick: openPaste } ),
+			el( 'button', { type: 'button', className: 'button', id: 'ept-propose', text: data.deepl.configured ? __( 'Proponi traduzioni', 'ept' ) : __( 'Proponi dalla memoria', 'ept' ), onClick: () => propose( [], false ) } ),
 			el( 'button', { type: 'button', className: 'button', id: 'ept-accept-all', text: __( 'Accetta tutte le proposte', 'ept' ), onClick: acceptAll } ),
 			el( 'span', { id: 'ept-dirty', className: 'ept-tag ept-tag--warn', hidden: ! dirty, text: __( 'Modifiche non salvate', 'ept' ) } ),
 		] );
@@ -345,7 +347,138 @@
 		if ( source === 'memory' ) {
 			return __( 'Proposta dalla memoria da rivedere', 'ept' );
 		}
+		if ( source === 'paste' ) {
+			return __( 'Traduzione incollata da rivedere', 'ept' );
+		}
 		return __( 'Proposta automatica da rivedere', 'ept' );
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Copy / paste with a free web translator (no account, no key)        */
+	/* ------------------------------------------------------------------ */
+
+	let copyList = null; // [ key | '__title' ] in the order of the numbers of the last copy
+
+	function rowsToTranslate() {
+		return data.strings.filter( ( row ) => {
+			const st = rowState[ row.key ];
+			return ! row.dynamic && row.format !== 'code' && st.s === '' && st.t.trim() === '';
+		} );
+	}
+
+	function googleLang( locale ) {
+		const parts = String( locale ).split( '_' );
+		if ( parts[ 0 ] === 'zh' ) {
+			return parts[ 1 ] === 'TW' || parts[ 1 ] === 'HK' ? 'zh-TW' : 'zh-CN';
+		}
+		return parts[ 0 ];
+	}
+
+	function copyTexts() {
+		const rows = rowsToTranslate();
+		copyList = [];
+		const blocks = [];
+		if ( ! data.page.title ) {
+			copyList.push( '__title' );
+			blocks.push( '[' + copyList.length + ']\n' + data.source.title );
+		}
+		rows.forEach( ( row ) => {
+			copyList.push( row.key );
+			blocks.push( '[' + copyList.length + ']\n' + ( rowState[ row.key ].simple ? row.simple.original : row.original ) );
+		} );
+		if ( ! blocks.length ) {
+			notice( 'info', __( 'Non ci sono testi da tradurre: tutti i campi sono già compilati.', 'ept' ) );
+			return;
+		}
+		const text = blocks.join( '\n\n' );
+		const url = 'https://translate.google.com/?sl=' + encodeURIComponent( googleLang( data.source_locale || 'it_IT' ) ) + '&tl=' + encodeURIComponent( googleLang( data.lang.locale ) ) + '&op=translate';
+		const links = [ { href: url, text: __( 'Apri Google Traduttore', 'ept' ), blank: true } ];
+		const done = () => notice( 'success', sprintf( _n( '%d testo copiato negli appunti. Incollalo nel traduttore, copia il risultato e usa "Incolla traduzioni". Lascia invariati i numeri tra parentesi quadre.', '%d testi copiati negli appunti. Incollali nel traduttore, copia il risultato e usa "Incolla traduzioni". Lascia invariati i numeri tra parentesi quadre.', blocks.length, 'ept' ), blocks.length ), links );
+		const fallback = () => {
+			notice( 'info', __( 'Copia questo testo (Ctrl+C / Cmd+C), incollalo nel traduttore, poi usa "Incolla traduzioni". Lascia invariati i numeri tra parentesi quadre.', 'ept' ), links );
+			const area = el( 'textarea', { className: 'large-text ept-code', rows: 10, readonly: true } );
+			area.value = text;
+			document.getElementById( 'ept-notices' ).appendChild( area );
+			area.focus();
+			area.select();
+		};
+		if ( navigator.clipboard && window.isSecureContext ) {
+			navigator.clipboard.writeText( text ).then( done, fallback );
+		} else {
+			fallback();
+		}
+	}
+
+	function openPaste() {
+		const box = document.getElementById( 'ept-notices' );
+		const area = el( 'textarea', { className: 'large-text', rows: 10, id: 'ept-paste-area', 'aria-label': __( 'Testo tradotto da incollare', 'ept' ) } );
+		box.replaceChildren(
+			el( 'div', { className: 'ept-paste notice notice-info inline' }, [
+				el( 'p', { text: __( 'Incolla qui il testo tradotto, con i numeri tra parentesi quadre ([1], [2]…). Ogni traduzione andrà nel suo campo come proposta da rivedere.', 'ept' ) } ),
+				area,
+				el( 'p', {}, [
+					el( 'button', { type: 'button', className: 'button button-primary', text: __( 'Inserisci le traduzioni', 'ept' ), onClick: () => applyPaste( area.value ) } ),
+					' ',
+					el( 'button', { type: 'button', className: 'button', text: __( 'Annulla', 'ept' ), onClick: () => box.replaceChildren() } ),
+				] ),
+			] )
+		);
+		area.focus();
+	}
+
+	function applyPaste( text ) {
+		if ( ! copyList ) {
+			// Same rule as the copy: rebuilt after a reload (the list is deterministic).
+			copyList = ( data.page.title ? [] : [ '__title' ] ).concat( rowsToTranslate().map( ( row ) => row.key ) );
+		}
+		const parts = String( text ).split( /\[\s*(\d+)\s*\]/ );
+		const found = {};
+		for ( let i = 1; i < parts.length; i += 2 ) {
+			found[ parseInt( parts[ i ], 10 ) ] = parts[ i + 1 ].replace( /^\s*\n/, '' ).replace( /\s+$/, '' ).trim();
+		}
+		const byKey = {};
+		data.strings.forEach( ( row ) => {
+			byKey[ row.key ] = row;
+		} );
+		let applied = 0;
+		const missing = [];
+		copyList.forEach( ( key, index ) => {
+			const translation = found[ index + 1 ];
+			if ( translation === undefined || translation === '' ) {
+				missing.push( index + 1 );
+				return;
+			}
+			if ( key === '__title' ) {
+				data.page.title = translation;
+				applied++;
+				return;
+			}
+			const row = byKey[ key ];
+			const st = rowState[ key ];
+			if ( ! row || st.s !== '' ) {
+				return;
+			}
+			if ( st.simple ) {
+				st.plain = translation;
+				st.t = rebuildSimple( row, translation );
+			} else {
+				st.t = translation;
+			}
+			st.p = 'paste';
+			st.ok = true;
+			applied++;
+		} );
+		const extra = Object.keys( found ).map( Number ).filter( ( n ) => n < 1 || n > copyList.length );
+		dirty = true;
+		render();
+		let message = sprintf( _n( '%d traduzione inserita: rivedila e salva.', '%d traduzioni inserite: rivedile e salva.', applied, 'ept' ), applied );
+		if ( missing.length ) {
+			message += ' ' + sprintf( __( 'Numeri mancanti nel testo incollato: %s.', 'ept' ), missing.join( ', ' ) );
+		}
+		if ( extra.length ) {
+			message += ' ' + sprintf( __( 'Numeri sconosciuti ignorati: %s.', 'ept' ), extra.join( ', ' ) );
+		}
+		notice( missing.length || extra.length ? 'warning' : 'success', message );
 	}
 
 	function pendingProposals() {
@@ -705,7 +838,7 @@
 
 	function setBusy( value ) {
 		busy = value;
-		[ 'ept-save', 'ept-generate', 'ept-propose', 'ept-accept-all' ].forEach( ( id ) => {
+		[ 'ept-save', 'ept-generate', 'ept-propose', 'ept-accept-all', 'ept-copy', 'ept-paste' ].forEach( ( id ) => {
 			const button = document.getElementById( id );
 			if ( button ) {
 				button.disabled = value;

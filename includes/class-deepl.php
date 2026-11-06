@@ -39,12 +39,53 @@ final class Deepl {
 	private string $key;
 
 	/**
+	 * API base URL (detected when the key is verified, else guessed from the key).
+	 *
+	 * @var string
+	 */
+	private string $base;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param string $key API key.
+	 * @param string $key  API key.
+	 * @param string $base API base URL; empty = guess from the key.
 	 */
-	public function __construct( string $key ) {
-		$this->key = trim( $key );
+	public function __construct( string $key, string $base = '' ) {
+		$this->key  = trim( $key );
+		$this->base = in_array( $base, self::BASE_URLS, true ) ? $base : self::base_url( $this->key );
+	}
+
+	/**
+	 * Known API base URLs.
+	 */
+	public const BASE_URLS = array( 'https://api-free.deepl.com', 'https://api.deepl.com' );
+
+	/**
+	 * Find which API address accepts the key (plans changed in 2026; key formats of the
+	 * new Developer plan are not documented). Tries the guessed address first.
+	 *
+	 * @param string $key Key.
+	 * @return array{base:string,usage:array{count:int,limit:int}}|WP_Error
+	 */
+	public static function detect( string $key ) {
+		$guess = self::base_url( $key );
+		$order = array_values( array_unique( array_merge( array( $guess ), self::BASE_URLS ) ) );
+		$error = null;
+		foreach ( $order as $base ) {
+			$usage = ( new self( $key, $base ) )->usage();
+			if ( ! is_wp_error( $usage ) ) {
+				return array(
+					'base'  => $base,
+					'usage' => $usage,
+				);
+			}
+			$error = $usage;
+			if ( 'ept_deepl_http_403' !== $usage->get_error_code() ) {
+				break; // Network or other errors: trying the other address would not help.
+			}
+		}
+		return $error;
 	}
 
 	/**
@@ -207,7 +248,7 @@ final class Deepl {
 		if ( null !== $body ) {
 			$args['body'] = wp_json_encode( $body );
 		}
-		$url = self::base_url( $this->key ) . $path;
+		$url = $this->base . $path;
 
 		for ( $attempt = 0; $attempt < 2; $attempt++ ) {
 			$response = wp_remote_request( $url, $args );

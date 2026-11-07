@@ -40,7 +40,7 @@ final class Uae_Home_Links {
 
 	/**
 	 * Widgets whose output depends on the language of the page (home link, site name and
-	 * tagline, search form field) are not stored in Elementor's element cache: a header shared
+	 * tagline, search form field, menus with the language switcher) are not stored in Elementor's element cache: a header shared
 	 * by several languages would otherwise show the cached output of the first language.
 	 *
 	 * @param bool  $dynamic  Dynamic.
@@ -51,7 +51,7 @@ final class Uae_Home_Links {
 	public static function dynamic( $dynamic, $raw_data = array(), $element = null ) {
 		unset( $raw_data );
 		if ( ! $dynamic && Languages::all() && is_object( $element ) && method_exists( $element, 'get_name' )
-			&& in_array( $element->get_name(), array_merge( self::WIDGETS, array( 'hfe-site-tagline', 'hfe-search-button' ) ), true ) ) {
+			&& in_array( $element->get_name(), array_merge( self::WIDGETS, array( 'hfe-site-tagline', 'hfe-search-button', 'navigation-menu', 'nav-menu' ) ), true ) ) {
 			return true;
 		}
 		return (bool) $dynamic;

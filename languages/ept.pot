@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.14.1\n"
+"Project-Id-Version: Elementor Page Translator 0.15.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T22:38:48+00:00\n"
+"POT-Creation-Date: 2026-11-07T22:45:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -875,6 +875,57 @@ msgstr ""
 msgid "La traduzione di questa pagina non è ancora pubblicata: per ora il link resta in italiano."
 msgstr ""
 
+#: includes/class-menu-switcher.php:61
+msgid "Selettore lingua"
+msgstr ""
+
+#: includes/class-menu-switcher.php:69
+msgid "Tendina: bandiera della lingua corrente, le altre lingue nel sottomenu"
+msgstr ""
+
+#: includes/class-menu-switcher.php:70
+msgid "In fila: una voce per ogni lingua (bandiera e nome)"
+msgstr ""
+
+#: includes/class-menu-switcher.php:74
+msgid "Aggiunge le lingue a questo menu: nel menu del computer e, su mobile, dentro il menu hamburger. Aggiungilo a ogni menu usato nell'header, anche a quelli delle altre lingue (es. \"Menu EN\")."
+msgstr ""
+
+#: includes/class-menu-switcher.php:85
+msgid "Lingue"
+msgstr ""
+
+#: includes/class-menu-switcher.php:93
+msgid "Aggiungi al menu"
+msgstr ""
+
+#: includes/class-menu-switcher.php:123
+msgid "selettore presente"
+msgstr ""
+
+#: includes/class-menu-switcher.php:123
+msgid "senza selettore"
+msgstr ""
+
+#: includes/class-menu-switcher.php:138
+msgid "Selettore lingua (in fila)"
+msgstr ""
+
+#: includes/class-menu-switcher.php:138
+msgid "Selettore lingua (tendina)"
+msgstr ""
+
+#. translators: %s: current language name.
+#: includes/class-menu-switcher.php:207
+#, php-format
+msgid "Lingua: %s"
+msgstr ""
+
+#: includes/class-menu-switcher.php:261
+#: includes/class-switcher.php:269
+msgid "(lingua non pubblica)"
+msgstr ""
+
 #: includes/class-proposals.php:147
 msgid "Proposte DeepL non attive (facoltative, Impostazioni → Traduzioni). Puoi tradurre a mano o usare \"Copia testi da tradurre\" con Google Traduttore."
 msgstr ""
@@ -919,10 +970,6 @@ msgstr ""
 
 #: includes/class-switcher.php:269
 msgid "Lingua non ancora pubblica: la vedono solo gli utenti che possono modificare il sito."
-msgstr ""
-
-#: includes/class-switcher.php:269
-msgid "(lingua non pubblica)"
 msgstr ""
 
 #. translators: %s: current language name.

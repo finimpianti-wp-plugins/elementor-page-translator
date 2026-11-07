@@ -26,6 +26,7 @@ final class Plugin {
 		Link_Updater::init();
 		Current_Language::init();
 		Switcher::init();
+		Menu_Switcher::init();
 		Uae_Home_Links::init();
 		Uae_Templates::init();
 		Seo::init();

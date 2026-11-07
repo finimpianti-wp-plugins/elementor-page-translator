@@ -277,3 +277,49 @@
 	.ept-switcher--dropdown .ept-switcher__list { animation: none; }
 	.ept-switcher .ept-switcher__arrow { transition: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Language switcher inside a menu (Appearance -> Menus,              */
+/* also in the hamburger menu on mobile). The menu keeps its own       */
+/* fonts, colours and sub-menu style; only the flags are styled here.  */
+/* ------------------------------------------------------------------ */
+.ept-menu-lang .ept-menu-lang__label,
+.ept-menu-lang__item .ept-menu-lang__label {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+}
+
+.ept-menu-lang .ept-menu-flag,
+.ept-menu-lang__item .ept-menu-flag {
+	display: block;
+	flex: none;
+	width: 20px;
+	height: 14px;
+	max-width: none;
+	margin: 0;
+	object-fit: cover;
+	border-radius: 2px;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, .12);
+}
+
+.ept-menu-lang .ept-menu-lang__code {
+	letter-spacing: .04em;
+}
+
+.ept-menu-lang .ept-menu-lang__private,
+.ept-menu-lang__item .ept-menu-lang__private {
+	font-size: .8em;
+	opacity: .65;
+}
+
+.ept-menu-lang--flat:not(.ept-menu-lang--current) > a,
+.ept-menu-lang--flat:not(.ept-menu-lang--current) > div > a {
+	opacity: .75;
+}
+
+.ept-menu-lang--flat > a:hover,
+.ept-menu-lang--flat > div > a:hover {
+	opacity: 1;
+}

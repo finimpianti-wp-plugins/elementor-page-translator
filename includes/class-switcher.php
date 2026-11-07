@@ -356,8 +356,10 @@ final class Switcher {
 		$html .= '<span aria-hidden="true" class="ept-switcher__current">' . self::label( $current, $show ) . '</span>';
 		$html .= '<span class="ept-switcher__arrow" aria-hidden="true"></span></button>';
 		$html .= '<ul class="ept-switcher__list" id="' . esc_attr( $id ) . '" hidden>';
+		// In the open card there is room for the name: flag + name, whatever the toggle shows.
+		$panel = in_array( 'flag', $show, true ) ? array( 'flag', 'name' ) : array_values( array_unique( array_merge( $show, array( 'name' ) ) ) );
 		foreach ( $items as $item ) {
-			$html .= '<li class="' . esc_attr( self::item_class( $item ) ) . '">' . self::link( $item, $show ) . '</li>';
+			$html .= '<li class="' . esc_attr( self::item_class( $item ) ) . '">' . self::link( $item, $panel ) . '</li>';
 		}
 		return $html . '</ul></div>';
 	}

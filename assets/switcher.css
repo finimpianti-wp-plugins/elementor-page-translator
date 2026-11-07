@@ -1,29 +1,279 @@
-/* Language switcher: minimal styles, inherits font and colours from the theme. */
-.ept-switcher { font: inherit; color: inherit; }
-.ept-switcher__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .5em; }
-.ept-switcher__link { display: inline-flex; align-items: center; gap: .35em; color: inherit; text-decoration: none; padding: .25em .1em; }
-.ept-switcher__link:hover, .ept-switcher__link:focus-visible { text-decoration: underline; }
-.ept-switcher__item--current .ept-switcher__link { font-weight: 700; }
-.ept-switcher__flag { display: inline-block; width: 1.25em; height: auto; aspect-ratio: 10 / 7; object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .12); vertical-align: middle; }
-.ept-switcher__private { font-size: .75em; opacity: .7; }
-.ept-switcher__separator { opacity: .6; }
-.ept-switcher .screen-reader-text { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+/*
+ * Language switcher [ept_language_switcher].
+ * Self-contained: the toggle and the links reset the global button / link styles of the
+ * theme and of Elementor (borders, padding, widths, hover colours) and draw their own
+ * compact look. Text colour follows the header (currentColor), so it works on a
+ * transparent header over a video as well as on a white sticky header.
+ */
 
-/* Dropdown. */
-.ept-switcher--dropdown { position: relative; display: inline-block; }
-.ept-switcher__toggle { display: inline-flex; align-items: center; gap: .4em; font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 4px; padding: .35em .6em; cursor: pointer; min-height: 44px; }
-.ept-switcher__current { display: inline-flex; align-items: center; gap: .35em; }
-.ept-switcher__arrow { width: 0; height: 0; border-left: .3em solid transparent; border-right: .3em solid transparent; border-top: .35em solid currentColor; transition: transform .15s; }
-.ept-switcher__toggle[aria-expanded="true"] .ept-switcher__arrow { transform: rotate(180deg); }
-.ept-switcher--dropdown .ept-switcher__list { position: absolute; right: 0; top: calc(100% + 4px); z-index: 1000; display: block; min-width: 100%; background: #fff; color: #1d2327; border: 1px solid rgba(0, 0, 0, .15); border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, .12); padding: .25em 0; }
-.ept-switcher--dropdown .ept-switcher__list[hidden] { display: none; }
-.ept-switcher--dropdown .ept-switcher__link { display: flex; padding: .55em .9em; min-height: 44px; box-sizing: border-box; white-space: nowrap; }
-.ept-switcher--dropdown .ept-switcher__link:hover, .ept-switcher--dropdown .ept-switcher__link:focus-visible { background: rgba(0, 0, 0, .06); text-decoration: none; outline: none; }
-.ept-switcher--dropdown .ept-switcher__link:focus-visible { box-shadow: inset 0 0 0 2px currentColor; }
-/* Keep theme button styles (hover/focus backgrounds, tap highlight) from recolouring the toggle. */
-.ept-switcher .ept-switcher__toggle,
-.ept-switcher .ept-switcher__toggle:hover,
-.ept-switcher .ept-switcher__toggle:focus,
-.ept-switcher .ept-switcher__toggle:active { background: transparent; color: inherit; -webkit-tap-highlight-color: transparent; box-shadow: none; }
-.ept-switcher .ept-switcher__toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.ept-switcher .ept-switcher__toggle:hover { background: rgba(0, 0, 0, .04); }
+.ept-switcher {
+	--ept-sw-flag-w: 22px;
+	--ept-sw-flag-h: 16px;
+	--ept-sw-radius: 10px;
+	--ept-sw-panel-bg: #fff;
+	--ept-sw-panel-fg: #1f2a24;
+	--ept-sw-hover: rgba(127, 127, 127, .14);
+	--ept-sw-accent: #2e9e5b;
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	width: auto;
+	font-size: 15px;
+	line-height: 1.2;
+	color: inherit;
+}
+
+.ept-switcher .screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Flag: small rounded rectangle with a hairline, like the flags of most good switchers. */
+.ept-switcher .ept-switcher__flag {
+	display: block;
+	flex: none;
+	width: var(--ept-sw-flag-w);
+	height: var(--ept-sw-flag-h);
+	max-width: none;
+	margin: 0;
+	object-fit: cover;
+	border-radius: 3px;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, .12);
+}
+
+.ept-switcher .ept-switcher__code {
+	font-size: .82em;
+	font-weight: 600;
+	letter-spacing: .04em;
+}
+
+.ept-switcher .ept-switcher__private {
+	font-size: .75em;
+	opacity: .65;
+}
+
+/* ------------------------------------------------------------------ */
+/* Links (both styles): no theme colours, underlines or paddings.     */
+/* ------------------------------------------------------------------ */
+.ept-switcher .ept-switcher__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ept-switcher .ept-switcher__item {
+	margin: 0;
+	padding: 0;
+}
+
+.ept-switcher .ept-switcher__item::before,
+.ept-switcher .ept-switcher__item::marker {
+	content: none;
+}
+
+.ept-switcher .ept-switcher__link,
+.ept-switcher .ept-switcher__link:hover,
+.ept-switcher .ept-switcher__link:focus,
+.ept-switcher .ept-switcher__link:visited {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	color: inherit;
+	background: none;
+	border: 0;
+	box-shadow: none;
+	text-decoration: none;
+	font: inherit;
+}
+
+/* ------------------------------------------------------------------ */
+/* style="list": a row of flags / codes.                              */
+/* ------------------------------------------------------------------ */
+.ept-switcher--list .ept-switcher__list {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 6px;
+}
+
+.ept-switcher--list .ept-switcher__link,
+.ept-switcher--list .ept-switcher__link:hover,
+.ept-switcher--list .ept-switcher__link:focus {
+	gap: 6px;
+	padding: 6px;
+	border-radius: 6px;
+	opacity: .6;
+	transition: opacity .15s, background-color .15s;
+}
+
+.ept-switcher--list .ept-switcher__link:hover,
+.ept-switcher--list .ept-switcher__link:focus-visible,
+.ept-switcher--list .ept-switcher__item--current .ept-switcher__link {
+	opacity: 1;
+}
+
+.ept-switcher--list .ept-switcher__link:hover {
+	background: var(--ept-sw-hover);
+}
+
+.ept-switcher--list .ept-switcher__item--current .ept-switcher__flag {
+	outline: 1.5px solid currentColor;
+	outline-offset: 2px;
+}
+
+.ept-switcher--list .ept-switcher__separator {
+	opacity: .5;
+}
+
+/* ------------------------------------------------------------------ */
+/* style="dropdown": compact toggle + floating card.                  */
+/* ------------------------------------------------------------------ */
+
+/* Full reset of the theme / Elementor global button style, then our own. */
+.ept-switcher.ept-switcher--dropdown .ept-switcher__toggle {
+	all: unset;
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 40px;
+	padding: 6px 8px;
+	border-radius: 8px;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: background-color .15s;
+}
+
+.ept-switcher.ept-switcher--dropdown .ept-switcher__toggle:hover,
+.ept-switcher.ept-switcher--dropdown .ept-switcher__toggle[aria-expanded="true"] {
+	background: var(--ept-sw-hover);
+	color: inherit;
+	border: 0;
+	box-shadow: none;
+}
+
+.ept-switcher.ept-switcher--dropdown .ept-switcher__toggle:focus {
+	color: inherit;
+	border: 0;
+	box-shadow: none;
+}
+
+.ept-switcher.ept-switcher--dropdown .ept-switcher__toggle:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+.ept-switcher .ept-switcher__current {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Chevron drawn with borders: follows the text colour. */
+.ept-switcher .ept-switcher__arrow {
+	display: block;
+	width: 6px;
+	height: 6px;
+	margin: 0 2px 3px 1px;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(45deg);
+	opacity: .8;
+	transition: transform .2s, margin .2s;
+}
+
+.ept-switcher .ept-switcher__toggle[aria-expanded="true"] .ept-switcher__arrow {
+	transform: rotate(-135deg);
+	margin: 3px 2px 0 1px;
+}
+
+/* The card. */
+.ept-switcher--dropdown .ept-switcher__list {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	z-index: 10000;
+	display: block;
+	min-width: 180px;
+	padding: 6px;
+	background: var(--ept-sw-panel-bg);
+	color: var(--ept-sw-panel-fg);
+	border: 1px solid rgba(0, 0, 0, .08);
+	border-radius: var(--ept-sw-radius);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06);
+	transform-origin: top right;
+	animation: ept-switcher-in .14s ease-out;
+}
+
+.ept-switcher--dropdown .ept-switcher__list[hidden] {
+	display: none;
+}
+
+@keyframes ept-switcher-in {
+	from { opacity: 0; transform: translateY(-4px) scale(.98); }
+	to { opacity: 1; transform: none; }
+}
+
+.ept-switcher--dropdown .ept-switcher__link,
+.ept-switcher--dropdown .ept-switcher__link:hover,
+.ept-switcher--dropdown .ept-switcher__link:focus,
+.ept-switcher--dropdown .ept-switcher__link:visited {
+	display: flex;
+	width: 100%;
+	box-sizing: border-box;
+	min-height: 44px;
+	padding: 8px 10px;
+	border-radius: 6px;
+	color: var(--ept-sw-panel-fg);
+	font-size: 15px;
+	font-weight: 400;
+	white-space: nowrap;
+}
+
+.ept-switcher--dropdown .ept-switcher__link:hover,
+.ept-switcher--dropdown .ept-switcher__link:focus-visible {
+	background: #f1f4f2;
+	outline: none;
+}
+
+.ept-switcher--dropdown .ept-switcher__item--current .ept-switcher__link {
+	font-weight: 600;
+}
+
+/* Check mark on the current language. */
+.ept-switcher--dropdown .ept-switcher__item--current .ept-switcher__link::after {
+	content: "";
+	width: 5px;
+	height: 10px;
+	margin: 0 3px 3px auto;
+	border-right: 2px solid var(--ept-sw-accent);
+	border-bottom: 2px solid var(--ept-sw-accent);
+	transform: rotate(45deg);
+}
+
+/* Small screens: the card stays inside the viewport. */
+@media (max-width: 767px) {
+	.ept-switcher.ept-switcher--dropdown .ept-switcher__toggle { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+	.ept-switcher--dropdown .ept-switcher__list {
+		min-width: 160px;
+		max-width: calc(100vw - 24px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ept-switcher--dropdown .ept-switcher__list { animation: none; }
+	.ept-switcher .ept-switcher__arrow { transition: none; }
+}

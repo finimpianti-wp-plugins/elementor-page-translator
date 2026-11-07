@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.10.0\n"
+"Project-Id-Version: Elementor Page Translator 0.11.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T15:08:15+00:00\n"
+"POT-Creation-Date: 2026-11-07T15:20:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -127,16 +127,126 @@ msgstr ""
 msgid "Chiudi"
 msgstr ""
 
-#: includes/admin/class-pages-list.php:76
-#: assets/translation-screen.js:974
-msgid "Traduci"
+#. translators: 1: page title, 2: old slug, 3: new slug.
+#: includes/admin/class-lifecycle-notices.php:96
+#, php-format
+msgid "Hai cambiato lo slug della pagina \"%1$s\" da \"%2$s\" a \"%3$s\". Vuoi aggiornare anche lo slug delle traduzioni? Puoi modificare gli slug proposti."
 msgstr ""
 
+#: includes/admin/class-lifecycle-notices.php:109
+#: includes/class-switcher.php:318
+#: assets/translation-screen.js:206
+msgid "Lingua"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:109
+msgid "Slug attuale"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:109
+msgid "Nuovo slug"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:110
+msgid "Aggiorna gli slug"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:111
+msgid "Lascia invariati"
+msgstr ""
+
+#. translators: %s: page title.
+#: includes/admin/class-lifecycle-notices.php:116
+#, php-format
+msgid "Hai spostato la pagina \"%s\" sotto un'altra pagina. Vuoi spostare anche le traduzioni?"
+msgstr ""
+
+#. translators: %s: title of the new parent page.
+#: includes/admin/class-lifecycle-notices.php:125
+#, php-format
+msgid "sotto \"%s\""
+msgstr ""
+
+#. translators: %s: title of the new parent page.
+#: includes/admin/class-lifecycle-notices.php:125
+msgid "primo livello"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:131
+msgid "Sposta le traduzioni"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:132
+msgid "Lasciale dove sono"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:132
+#: includes/admin/class-lifecycle-notices.php:159
+msgid "Ho capito"
+msgstr ""
+
+#. translators: %s: page title.
+#: includes/admin/class-lifecycle-notices.php:137
+#, php-format
+msgid "Hai spostato nel cestino la pagina \"%s\". Vuoi spostare nel cestino anche le sue traduzioni?"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:139
+msgid "Sì, sposta nel cestino anche le traduzioni"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:140
+msgid "No, scollegale (diventano pagine indipendenti)"
+msgstr ""
+
+#. translators: %s: page title.
+#: includes/admin/class-lifecycle-notices.php:145
+#, php-format
+msgid "Hai ripristinato la pagina \"%s\". Vuoi ripristinare anche le traduzioni spostate nel cestino insieme a lei?"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:147
+msgid "Ripristina le traduzioni"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:148
+#: includes/admin/class-lifecycle-notices.php:157
+msgid "Lasciale nel cestino"
+msgstr ""
+
+#. translators: %s: page title.
+#: includes/admin/class-lifecycle-notices.php:153
+#, php-format
+msgid "Hai eliminato definitivamente la pagina \"%s\"."
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:155
+msgid "Queste traduzioni sono nel cestino. Vuoi eliminarle definitivamente? L'operazione non si può annullare."
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:156
+msgid "Elimina definitivamente le traduzioni"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:162
+msgid "Queste traduzioni restano pubblicate come erano e sono segnate come \"orfane\" (non sono più collegate a una pagina italiana):"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:172
 #: includes/admin/class-pages-list.php:95
 #: includes/admin/class-settings-page.php:46
 #: includes/admin/class-settings-page.php:47
 #: includes/admin/class-settings-page.php:85
 msgid "Traduzioni"
+msgstr ""
+
+#: includes/admin/class-lifecycle-notices.php:192
+msgid "Non hai i permessi per questa operazione."
+msgstr ""
+
+#: includes/admin/class-pages-list.php:76
+#: assets/translation-screen.js:974
+msgid "Traduci"
 msgstr ""
 
 #. translators: %s: language name.
@@ -191,16 +301,22 @@ msgstr ""
 msgid "%1$s · traduzione di \"%2$s\""
 msgstr ""
 
-#: includes/admin/class-pages-list.php:268
+#. translators: %s: language code.
+#: includes/admin/class-pages-list.php:269
+#, php-format
+msgid "%s · orfana (non collegata a una pagina italiana)"
+msgstr ""
+
+#: includes/admin/class-pages-list.php:272
 #: assets/translation-screen.js:312
 msgid "incompleta"
 msgstr ""
 
-#: includes/admin/class-pages-list.php:283
+#: includes/admin/class-pages-list.php:287
 msgid "Filtra per lingua"
 msgstr ""
 
-#: includes/admin/class-pages-list.php:285
+#: includes/admin/class-pages-list.php:289
 msgid "Tutte le lingue"
 msgstr ""
 
@@ -596,6 +712,62 @@ msgstr ""
 msgid "Il prefisso URL è già usato da un'altra lingua."
 msgstr ""
 
+#: includes/class-lifecycle.php:361
+msgid "Operazione già eseguita o non più valida."
+msgstr ""
+
+#: includes/class-lifecycle.php:365
+msgid "Avviso ignorato: le traduzioni non sono state modificate."
+msgstr ""
+
+#. translators: %d: number of pages.
+#: includes/class-lifecycle.php:384
+#, php-format
+msgid "Slug aggiornato in %d traduzione."
+msgid_plural "Slug aggiornato in %d traduzioni."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of pages.
+#: includes/class-lifecycle.php:400
+#, php-format
+msgid "%d traduzione spostata."
+msgid_plural "%d traduzioni spostate."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of pages.
+#: includes/class-lifecycle.php:417
+#, php-format
+msgid "%d traduzione scollegata: ora è una pagina indipendente."
+msgid_plural "%d traduzioni scollegate: ora sono pagine indipendenti."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of pages.
+#: includes/class-lifecycle.php:419
+#, php-format
+msgid "%d traduzione spostata nel cestino."
+msgid_plural "%d traduzioni spostate nel cestino."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of pages.
+#: includes/class-lifecycle.php:432
+#, php-format
+msgid "%d traduzione ripristinata."
+msgid_plural "%d traduzioni ripristinate."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of pages.
+#: includes/class-lifecycle.php:442
+#, php-format
+msgid "%d traduzione eliminata definitivamente."
+msgid_plural "%d traduzioni eliminate definitivamente."
+msgstr[0] ""
+msgstr[1] ""
+
 #: includes/class-links.php:80
 msgid "File caricato: resta uguale. Se esiste la versione in questa lingua, scrivi il suo indirizzo nel campo URL manuale."
 msgstr ""
@@ -668,11 +840,6 @@ msgstr ""
 
 #: includes/class-switcher.php:269
 msgid "(lingua non pubblica)"
-msgstr ""
-
-#: includes/class-switcher.php:318
-#: assets/translation-screen.js:206
-msgid "Lingua"
 msgstr ""
 
 #. translators: %s: current language name.

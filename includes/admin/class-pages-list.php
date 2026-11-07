@@ -264,6 +264,10 @@ final class Pages_List {
 			/* translators: 1: language code, 2: title of the Italian page. */
 			$states['ept_translation'] = sprintf( __( '%1$s · traduzione di "%2$s"', 'ept' ), $code, get_the_title( $source ) );
 		}
+		if ( ! $source && get_post_meta( $post->ID, \EPT\Lifecycle::META_ORPHAN, true ) ) {
+			/* translators: %s: language code. */
+			$states['ept_orphan'] = sprintf( __( '%s · orfana (non collegata a una pagina italiana)', 'ept' ), $code );
+		}
 		if ( (int) get_post_meta( $post->ID, Translations::META_INCOMPLETE, true ) > 0 ) {
 			$states['ept_incomplete'] = __( 'incompleta', 'ept' );
 		}

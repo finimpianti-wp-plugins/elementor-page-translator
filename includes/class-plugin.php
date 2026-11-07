@@ -29,6 +29,7 @@ final class Plugin {
 		Uae_Home_Links::init();
 		Uae_Templates::init();
 		Seo::init();
+		Lifecycle::init();
 
 		if ( is_admin() ) {
 			Admin\Notices::init();
@@ -38,6 +39,7 @@ final class Plugin {
 			Admin\Translation_Screen::init();
 			Admin\Editor_Notice::init();
 			Admin\Seo_Metabox::init();
+			Admin\Lifecycle_Notices::init();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

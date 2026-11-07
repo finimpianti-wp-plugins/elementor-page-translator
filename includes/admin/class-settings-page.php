@@ -84,6 +84,13 @@ final class Settings_Page {
 		<div class="wrap ept-settings">
 			<h1><?php esc_html_e( 'Traduzioni', 'ept' ); ?></h1>
 
+			<?php if ( '' === (string) get_option( 'permalink_structure' ) ) : ?>
+				<div class="notice notice-warning inline"><p>
+					<?php esc_html_e( 'I permalink del sito sono disattivati (Impostazioni → Permalink: "Semplice"). Le traduzioni funzionano, ma gli indirizzi sono del tipo ?page_id=123 invece di /en/nome-pagina/. Per avere gli indirizzi per lingua scegli, per esempio, "Nome articolo" in Impostazioni → Permalink.', 'ept' ); ?>
+					<a href="<?php echo esc_url( admin_url( 'options-permalink.php' ) ); ?>"><?php esc_html_e( 'Apri le impostazioni dei permalink', 'ept' ); ?></a>
+				</p></div>
+			<?php endif; ?>
+
 			<h2><?php esc_html_e( 'Lingua predefinita', 'ept' ); ?></h2>
 			<p>
 				<?php

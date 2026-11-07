@@ -295,6 +295,7 @@ final class Translation_Service {
 			'deepl'          => Proposals::usage_summary(),
 			'source_locale'  => (string) Languages::default_language()['locale'],
 			'can_publish'    => current_user_can( 'publish_pages' ),
+			'pretty_links'   => '' !== (string) get_option( 'permalink_structure' ),
 		);
 	}
 

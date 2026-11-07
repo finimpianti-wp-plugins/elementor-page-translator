@@ -266,7 +266,7 @@ final class Switcher {
 			}
 		}
 		if ( ! $item['public'] ) {
-			$html .= '<span class="ept-switcher__private">' . esc_html__( '(non pubblica)', 'ept' ) . '</span>';
+			$html .= '<span class="ept-switcher__private" title="' . esc_attr__( 'Lingua non ancora pubblica: la vedono solo gli utenti che possono modificare il sito.', 'ept' ) . '">' . esc_html__( '(lingua non pubblica)', 'ept' ) . '</span>';
 		}
 		return $html;
 	}

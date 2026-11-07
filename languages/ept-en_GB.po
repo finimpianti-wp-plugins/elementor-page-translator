@@ -14,5 +14,8 @@ msgstr "Language"
 msgid "Lingua: %s. Cambia lingua"
 msgstr "Language: %s. Change language"
 
-msgid "(non pubblica)"
-msgstr "(not public)"
+msgid "(lingua non pubblica)"
+msgstr "(language not public)"
+
+msgid "Lingua non ancora pubblica: la vedono solo gli utenti che possono modificare il sito."
+msgstr "Language not public yet: only users who can edit the site see it."

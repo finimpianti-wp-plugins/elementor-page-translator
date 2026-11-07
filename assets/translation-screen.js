@@ -258,7 +258,10 @@
 			);
 		}
 		grid.appendChild( field( null, __( 'Genitore', 'ept' ), parentBox ) );
-		grid.appendChild( field( null, __( 'Indirizzo', 'ept' ), el( 'code', { id: 'ept-url' } ) ) );
+		grid.appendChild( field( null, __( 'Indirizzo', 'ept' ), el( 'span', {}, [
+			el( 'code', { id: 'ept-url' } ),
+			el( 'span', { id: 'ept-url-note', className: 'description ept-warning', hidden: true, text: ' ' + sprintf( __( 'I permalink del sito sono disattivati (Impostazioni → Permalink: "Semplice"): gli indirizzi sono del tipo ?page_id=. Con i permalink attivi la pagina sarà sotto /%s/.', 'ept' ), data.lang.prefix ) } ),
+		] ) ) );
 
 		// Status of the translated page: chosen at creation and changeable at every update.
 		const status = el( 'select', {
@@ -313,6 +316,15 @@
 		}
 		if ( ! data.parent.ok ) {
 			target.textContent = '—';
+			return;
+		}
+		const note = document.getElementById( 'ept-url-note' );
+		if ( ! data.pretty_links ) {
+			// Plain permalinks (common on staging copies): pages get ?page_id= addresses, no /en/ path.
+			target.textContent = data.target ? data.target.view_link.replace( /&preview=true$/, '' ) : '?page_id=…';
+			if ( note ) {
+				note.hidden = false;
+			}
 			return;
 		}
 		const base = data.parent.url.replace( /\/?$/, '/' );

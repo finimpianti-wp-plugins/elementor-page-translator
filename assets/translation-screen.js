@@ -32,6 +32,21 @@
 	/* Helpers                                                              */
 	/* ------------------------------------------------------------------ */
 
+	/**
+	 * Readable error: a response that is not JSON usually means the web server refused the
+	 * request (body larger than its limit) or the connection dropped.
+	 */
+	function errorText( error, fallback, sentBytes ) {
+		if ( error && ( error.code === 'invalid_json' || error.code === 'fetch_error' ) ) {
+			let message = __( 'Il server non ha risposto correttamente: la richiesta potrebbe superare il limite di dimensione del server, oppure la connessione si è interrotta.', 'ept' );
+			if ( sentBytes ) {
+				message += ' ' + sprintf( __( 'Dati inviati: %s KB.', 'ept' ), Math.ceil( sentBytes / 1024 ) );
+			}
+			return message + ' ' + __( 'Le traduzioni sono ancora in questa schermata: riprova; se l\'errore si ripete chiedi all\'hosting di aumentare il limite delle richieste (post_max_size, client_max_body_size).', 'ept' );
+		}
+		return ( error && error.message ) || fallback;
+	}
+
 	function el( tag, attrs, children ) {
 		const node = document.createElement( tag );
 		Object.entries( attrs || {} ).forEach( ( [ name, value ] ) => {
@@ -126,7 +141,7 @@
 				}
 			} )
 			.catch( ( error ) => {
-				app.replaceChildren( el( 'div', { className: 'notice notice-error' }, [ el( 'p', { text: error.message || __( 'Errore di caricamento.', 'ept' ) } ) ] ) );
+				app.replaceChildren( el( 'div', { className: 'notice notice-error' }, [ el( 'p', { text: errorText( error, __( 'Errore di caricamento.', 'ept' ) ) } ) ] ) );
 			} );
 	}
 
@@ -591,7 +606,7 @@
 			} )
 			.catch( ( error ) => {
 				setBusy( false );
-				notice( 'error', error.message || __( 'Proposte non disponibili.', 'ept' ) );
+				notice( 'error', errorText( error, __( 'Proposte non disponibili.', 'ept' ) ) );
 			} );
 	}
 
@@ -1207,7 +1222,7 @@
 						} )
 						.catch( ( error ) => {
 							setBusy( false );
-							notice( 'error', error.message );
+							notice( 'error', errorText( error, __( 'Errore durante l\'aggiornamento dei link.', 'ept' ) ) );
 						} );
 				},
 			} ) ] ),
@@ -1278,7 +1293,9 @@
 			return;
 		}
 		setBusy( true );
-		wp.apiFetch( { path: path( generate ? '/generate' : '' ), method: 'POST', data: Object.assign( body( confirm ), { overwrite: !! overwrite } ) } )
+		const payload = Object.assign( body( confirm ), { overwrite: !! overwrite } );
+		const sent = new Blob( [ JSON.stringify( payload ) ] ).size;
+		wp.apiFetch( { path: path( generate ? '/generate' : '' ), method: 'POST', data: payload } )
 			.then( ( response ) => {
 				setBusy( false );
 				setData( response.screen );
@@ -1312,7 +1329,7 @@
 					}
 					return;
 				}
-				notice( 'error', error.message || __( 'Errore durante il salvataggio.', 'ept' ) );
+				notice( 'error', errorText( error, __( 'Errore durante il salvataggio.', 'ept' ), sent ) );
 			} );
 	}
 

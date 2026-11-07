@@ -537,7 +537,7 @@ final class Lifecycle {
 		}
 		$request = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$path    = self::path_of( '/' . ltrim( rawurldecode( (string) wp_parse_url( $request, PHP_URL_PATH ) ), '/' ) );
-		$target = self::redirect_target( $path );
+		$target  = self::redirect_target( $path );
 		if ( '' !== $target ) {
 			wp_safe_redirect( $target, 301, 'Elementor Page Translator' );
 			exit;

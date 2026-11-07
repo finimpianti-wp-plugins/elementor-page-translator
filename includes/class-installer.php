@@ -17,7 +17,7 @@ final class Installer {
 	/**
 	 * Bump when the schema or stored data change; add a step to migrations().
 	 */
-	public const DB_VERSION = 2;
+	public const DB_VERSION = 3;
 
 	public const DB_VERSION_OPTION = 'ept_db_version';
 
@@ -83,6 +83,37 @@ final class Installer {
 			},
 			2 => static function (): void {
 				// Link index gains "state" (translated | italian | manual): created by dbDelta in create_tables().
+			},
+			3 => static function (): void {
+				// Hashes become independent of the site address: convert the stored ones that are
+				// still valid, so the state of every translation stays exactly the same.
+				$targets = get_posts(
+					array(
+						'post_type'        => array( 'page', Uae_Templates::POST_TYPE ),
+						'post_status'      => 'any',
+						'fields'           => 'ids',
+						'posts_per_page'   => -1,
+						'suppress_filters' => true,
+						'meta_key'         => Translations::META_SOURCE, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					)
+				);
+				foreach ( array_map( 'intval', $targets ) as $target ) {
+					$source = Translations::source_of( $target );
+					$lang   = Translations::language_of( $target );
+					if ( ! $source ) {
+						continue;
+					}
+					$pairs = array(
+						Translations::META_SOURCE_HASH  => array( Translations::source_fingerprint( $source, false ), Translations::source_fingerprint( $source ) ),
+						Translations::META_STRINGS_HASH => array( Translations::strings_hash( $source, $lang, false ), Translations::strings_hash( $source, $lang ) ),
+						Translations::META_OUTPUT_HASH  => array( Translations::data_hash( $target, false ), Translations::data_hash( $target ) ),
+					);
+					foreach ( $pairs as $meta => $hashes ) {
+						if ( get_post_meta( $target, $meta, true ) === $hashes[0] ) {
+							update_post_meta( $target, $meta, $hashes[1] );
+						}
+					}
+				}
 			},
 		);
 	}

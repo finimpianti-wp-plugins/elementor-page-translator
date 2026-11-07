@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.11.0\n"
+"Project-Id-Version: Elementor Page Translator 0.12.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T15:20:17+00:00\n"
+"POT-Creation-Date: 2026-11-07T15:29:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -135,7 +135,7 @@ msgstr ""
 
 #: includes/admin/class-lifecycle-notices.php:109
 #: includes/class-switcher.php:318
-#: assets/translation-screen.js:206
+#: assets/translation-screen.js:221
 msgid "Lingua"
 msgstr ""
 
@@ -245,7 +245,7 @@ msgid "Non hai i permessi per questa operazione."
 msgstr ""
 
 #: includes/admin/class-pages-list.php:76
-#: assets/translation-screen.js:974
+#: assets/translation-screen.js:989
 msgid "Traduci"
 msgstr ""
 
@@ -308,7 +308,7 @@ msgid "%s · orfana (non collegata a una pagina italiana)"
 msgstr ""
 
 #: includes/admin/class-pages-list.php:272
-#: assets/translation-screen.js:312
+#: assets/translation-screen.js:327
 msgid "incompleta"
 msgstr ""
 
@@ -322,7 +322,7 @@ msgstr ""
 
 #: includes/admin/class-seo-metabox.php:39
 #: includes/admin/class-seo-metabox.php:50
-#: assets/translation-screen.js:1151
+#: assets/translation-screen.js:1166
 msgid "Meta description"
 msgstr ""
 
@@ -624,7 +624,7 @@ msgstr ""
 #: includes/admin/class-translation-screen.php:62
 #: includes/admin/class-translation-screen.php:71
 #: includes/admin/class-translation-screen.php:127
-#: assets/translation-screen.js:1164
+#: assets/translation-screen.js:1179
 msgid "Traduzione"
 msgstr ""
 
@@ -865,7 +865,7 @@ msgid "Contatore"
 msgstr ""
 
 #: includes/class-translation-service.php:35
-#: assets/translation-screen.js:1162
+#: assets/translation-screen.js:1177
 msgid "Immagine"
 msgstr ""
 
@@ -1001,650 +1001,667 @@ msgstr ""
 msgid "Non hai i permessi per modificare la pagina tradotta."
 msgstr ""
 
-#: assets/translation-screen.js:129
+#: assets/translation-screen.js:41
+msgid "Il server non ha risposto correttamente: la richiesta potrebbe superare il limite di dimensione del server, oppure la connessione si è interrotta."
+msgstr ""
+
+#: assets/translation-screen.js:43
+#, js-format
+msgid "Dati inviati: %s KB."
+msgstr ""
+
+#: assets/translation-screen.js:45
+msgid "Le traduzioni sono ancora in questa schermata: riprova; se l'errore si ripete chiedi all'hosting di aumentare il limite delle richieste (post_max_size, client_max_body_size)."
+msgstr ""
+
+#: assets/translation-screen.js:144
 msgid "Errore di caricamento."
 msgstr ""
 
-#: assets/translation-screen.js:189
+#: assets/translation-screen.js:204
 msgid "Ci sono modifiche non salvate. Cambiare lingua comunque?"
 msgstr ""
 
-#: assets/translation-screen.js:203
+#: assets/translation-screen.js:218
 msgid "Pagina originale:"
 msgstr ""
 
-#: assets/translation-screen.js:208
+#: assets/translation-screen.js:223
 msgid "lingua non pubblica"
 msgstr ""
 
-#: assets/translation-screen.js:235
+#: assets/translation-screen.js:250
 msgid "Titolo della pagina"
 msgstr ""
 
-#: assets/translation-screen.js:252
+#: assets/translation-screen.js:267
 msgid "Slug"
 msgstr ""
 
-#: assets/translation-screen.js:252
+#: assets/translation-screen.js:267
 msgid "La home della lingua è la pagina radice: lo slug è il prefisso."
 msgstr ""
 
-#: assets/translation-screen.js:274
+#: assets/translation-screen.js:289
 msgid "Appoggia alla pagina radice della lingua"
 msgstr ""
 
-#: assets/translation-screen.js:279
+#: assets/translation-screen.js:294
 msgid "Genitore"
 msgstr ""
 
-#: assets/translation-screen.js:281
+#: assets/translation-screen.js:296
 msgid "Template UAE"
 msgstr ""
 
-#: assets/translation-screen.js:281
+#: assets/translation-screen.js:296
 msgid "Header e footer tradotti non hanno regole di visualizzazione: vengono mostrati al posto dell'originale sulle pagine di questa lingua (se pubblicati)."
 msgstr ""
 
-#: assets/translation-screen.js:283
+#: assets/translation-screen.js:298
 msgid "Indirizzo"
 msgstr ""
 
-#: assets/translation-screen.js:285
+#: assets/translation-screen.js:300
 #, js-format
 msgid "I permalink del sito sono disattivati (Impostazioni → Permalink: \"Semplice\"): gli indirizzi sono del tipo ?page_id=. Con i permalink attivi la pagina sarà sotto /%s/."
 msgstr ""
 
-#: assets/translation-screen.js:296
+#: assets/translation-screen.js:311
 msgid "Bozza (visibile solo a chi modifica il sito)"
 msgstr ""
 
-#: assets/translation-screen.js:298
+#: assets/translation-screen.js:313
 msgid "Pubblicata"
 msgstr ""
 
-#: assets/translation-screen.js:300
+#: assets/translation-screen.js:315
 msgid "Stato della pagina tradotta"
 msgstr ""
 
-#: assets/translation-screen.js:300
+#: assets/translation-screen.js:315
 msgid "Si applica con \"Aggiorna pagina\"."
 msgstr ""
 
-#: assets/translation-screen.js:300
+#: assets/translation-screen.js:315
 msgid "Si applica con \"Crea pagina\"."
 msgstr ""
 
-#: assets/translation-screen.js:304
-#: assets/translation-screen.js:1291
+#: assets/translation-screen.js:319
+#: assets/translation-screen.js:1308
 msgid "Visualizza"
 msgstr ""
 
-#: assets/translation-screen.js:306
-#: assets/translation-screen.js:1292
+#: assets/translation-screen.js:321
+#: assets/translation-screen.js:1309
 msgid "Apri in Elementor"
 msgstr ""
 
-#: assets/translation-screen.js:309
+#: assets/translation-screen.js:324
 msgid "da aggiornare"
 msgstr ""
 
-#: assets/translation-screen.js:315
+#: assets/translation-screen.js:330
 msgid "modificata a mano in Elementor"
 msgstr ""
 
-#: assets/translation-screen.js:317
-#: assets/translation-screen.js:941
+#: assets/translation-screen.js:332
+#: assets/translation-screen.js:956
 msgid "Pagina tradotta"
 msgstr ""
 
-#: assets/translation-screen.js:320
+#: assets/translation-screen.js:335
 msgid "Avanzamento"
 msgstr ""
 
-#: assets/translation-screen.js:367
+#: assets/translation-screen.js:382
 msgid "Mostra solo i testi da tradurre"
 msgstr ""
 
-#: assets/translation-screen.js:371
+#: assets/translation-screen.js:386
 msgid "Tutti i testi uguali all'originale"
 msgstr ""
 
-#: assets/translation-screen.js:373
+#: assets/translation-screen.js:388
 msgid "Copia testi da tradurre"
 msgstr ""
 
-#: assets/translation-screen.js:374
+#: assets/translation-screen.js:389
 msgid "Incolla traduzioni"
 msgstr ""
 
-#: assets/translation-screen.js:375
+#: assets/translation-screen.js:390
 msgid "Proponi traduzioni"
 msgstr ""
 
-#: assets/translation-screen.js:375
+#: assets/translation-screen.js:390
 msgid "Proponi dalla memoria"
 msgstr ""
 
-#: assets/translation-screen.js:376
+#: assets/translation-screen.js:391
 msgid "Accetta tutte le proposte"
 msgstr ""
 
-#: assets/translation-screen.js:377
+#: assets/translation-screen.js:392
 msgid "Modifiche non salvate"
 msgstr ""
 
-#: assets/translation-screen.js:383
+#: assets/translation-screen.js:398
 msgid "Proposta DeepL da rivedere"
 msgstr ""
 
-#: assets/translation-screen.js:386
+#: assets/translation-screen.js:401
 msgid "Proposta dalla memoria da rivedere"
 msgstr ""
 
-#: assets/translation-screen.js:389
+#: assets/translation-screen.js:404
 msgid "Traduzione incollata da rivedere"
 msgstr ""
 
-#: assets/translation-screen.js:391
+#: assets/translation-screen.js:406
 msgid "Proposta automatica da rivedere"
 msgstr ""
 
-#: assets/translation-screen.js:451
+#: assets/translation-screen.js:466
 msgid "Non ci sono testi da tradurre: tutti i campi sono già compilati."
 msgstr ""
 
-#: assets/translation-screen.js:456
+#: assets/translation-screen.js:471
 msgid "Apri Google Traduttore"
 msgstr ""
 
-#: assets/translation-screen.js:457
+#: assets/translation-screen.js:472
 #, js-format
 msgid "%d testo copiato negli appunti. Incollalo nel traduttore, copia il risultato e usa \"Incolla traduzioni\". Lascia invariati i numeri tra parentesi quadre."
 msgid_plural "%d testi copiati negli appunti. Incollali nel traduttore, copia il risultato e usa \"Incolla traduzioni\". Lascia invariati i numeri tra parentesi quadre."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:459
+#: assets/translation-screen.js:474
 msgid "Copia questo testo (Ctrl+C / Cmd+C), incollalo nel traduttore, poi usa \"Incolla traduzioni\". Lascia invariati i numeri tra parentesi quadre."
 msgstr ""
 
-#: assets/translation-screen.js:475
+#: assets/translation-screen.js:490
 msgid "Testo tradotto da incollare"
 msgstr ""
 
-#: assets/translation-screen.js:478
+#: assets/translation-screen.js:493
 msgid "Incolla qui il testo tradotto, con i numeri tra parentesi quadre ([1], [2]…). Ogni traduzione andrà nel suo campo come proposta da rivedere."
 msgstr ""
 
-#: assets/translation-screen.js:481
+#: assets/translation-screen.js:496
 msgid "Inserisci le traduzioni"
 msgstr ""
 
-#: assets/translation-screen.js:483
+#: assets/translation-screen.js:498
 msgid "Annulla"
 msgstr ""
 
-#: assets/translation-screen.js:545
+#: assets/translation-screen.js:560
 #, js-format
 msgid "%d traduzione inserita: rivedila e salva."
 msgid_plural "%d traduzioni inserite: rivedile e salva."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:547
+#: assets/translation-screen.js:562
 #, js-format
 msgid "Numeri mancanti nel testo incollato: %s."
 msgstr ""
 
-#: assets/translation-screen.js:550
+#: assets/translation-screen.js:565
 #, js-format
 msgid "Numeri sconosciuti ignorati: %s."
 msgstr ""
 
-#: assets/translation-screen.js:577
+#: assets/translation-screen.js:592
 msgid "Richiesta delle proposte in corso…"
 msgstr ""
 
-#: assets/translation-screen.js:585
+#: assets/translation-screen.js:600
 #, js-format
 msgid "%d proposta ricevuta."
 msgid_plural "%d proposte ricevute."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:587
+#: assets/translation-screen.js:602
 #, js-format
 msgid "%d proposta da rivedere: è evidenziata in viola finché non la confermi o la modifichi."
 msgid_plural "%d proposte da rivedere: sono evidenziate in viola finché non le confermi o le modifichi."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:589
+#: assets/translation-screen.js:604
 msgid "Nessun testo da proporre."
 msgstr ""
 
-#: assets/translation-screen.js:594
+#: assets/translation-screen.js:609
 msgid "Proposte non disponibili."
 msgstr ""
 
-#: assets/translation-screen.js:605
+#: assets/translation-screen.js:620
 #, js-format
 msgid "DeepL: %1$s su %2$s caratteri usati nel periodo."
 msgstr ""
 
-#: assets/translation-screen.js:615
+#: assets/translation-screen.js:630
 #, js-format
 msgid "%d testo è già tradotto. OK: rendi uguale all'originale anche quello. Annulla: solo i testi senza traduzione."
 msgid_plural "%d testi sono già tradotti. OK: rendi uguali all'originale anche quelli. Annulla: solo i testi senza traduzione."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:680
+#: assets/translation-screen.js:695
 #, js-format
 msgid "%1$d di %2$d"
 msgstr ""
 
-#: assets/translation-screen.js:685
+#: assets/translation-screen.js:700
 #, js-format
 msgid "%1$d di %2$d tradotti"
 msgstr ""
 
-#: assets/translation-screen.js:690
-#: assets/translation-screen.js:707
+#: assets/translation-screen.js:705
+#: assets/translation-screen.js:722
 msgid "Testi"
 msgstr ""
 
-#: assets/translation-screen.js:690
+#: assets/translation-screen.js:705
 msgid "Nessun testo da tradurre in questa pagina."
 msgstr ""
 
-#: assets/translation-screen.js:705
+#: assets/translation-screen.js:720
 #, js-format
 msgid "Sezione %d"
 msgstr ""
 
-#: assets/translation-screen.js:727
+#: assets/translation-screen.js:742
 msgid "rilevato automaticamente"
 msgstr ""
 
-#: assets/translation-screen.js:728
+#: assets/translation-screen.js:743
 msgid "nuovo"
 msgstr ""
 
-#: assets/translation-screen.js:729
+#: assets/translation-screen.js:744
 msgid "originale modificato"
 msgstr ""
 
-#: assets/translation-screen.js:739
+#: assets/translation-screen.js:754
 msgid "Originale precedente"
 msgstr ""
 
-#: assets/translation-screen.js:745
+#: assets/translation-screen.js:760
 msgid "Contenuto dinamico: viene copiato invariato."
 msgstr ""
 
-#: assets/translation-screen.js:757
+#: assets/translation-screen.js:772
 #, js-format
 msgid "Traduzione di: %s"
 msgstr ""
 
-#: assets/translation-screen.js:784
+#: assets/translation-screen.js:799
 msgid "Attenzione: il numero di tag HTML è diverso dall'originale."
 msgstr ""
 
-#: assets/translation-screen.js:802
+#: assets/translation-screen.js:817
 msgid "Uguale all'originale"
 msgstr ""
 
-#: assets/translation-screen.js:819
+#: assets/translation-screen.js:834
 msgid "Escludi"
 msgstr ""
 
-#: assets/translation-screen.js:827
+#: assets/translation-screen.js:842
 msgid "Copia originale"
 msgstr ""
 
-#: assets/translation-screen.js:846
+#: assets/translation-screen.js:861
 msgid "Conferma proposta"
 msgstr ""
 
-#: assets/translation-screen.js:860
+#: assets/translation-screen.js:875
 msgid "Ripeti proposta"
 msgstr ""
 
-#: assets/translation-screen.js:870
+#: assets/translation-screen.js:885
 msgid "Mostra HTML"
 msgstr ""
 
-#: assets/translation-screen.js:883
+#: assets/translation-screen.js:898
 msgid "Conferma traduzione"
 msgstr ""
 
-#: assets/translation-screen.js:922
+#: assets/translation-screen.js:937
 #, js-format
 msgid "%1$d di %2$d testi"
 msgstr ""
 
-#: assets/translation-screen.js:942
+#: assets/translation-screen.js:957
 msgid "Home della lingua"
 msgstr ""
 
-#: assets/translation-screen.js:943
+#: assets/translation-screen.js:958
 msgid "Pagina non ancora tradotta"
 msgstr ""
 
-#: assets/translation-screen.js:944
+#: assets/translation-screen.js:959
 msgid "Traduzione non pubblicata"
 msgstr ""
 
-#: assets/translation-screen.js:945
+#: assets/translation-screen.js:960
 msgid "Ancora nella pagina"
 msgstr ""
 
-#: assets/translation-screen.js:946
+#: assets/translation-screen.js:961
 msgid "File"
 msgstr ""
 
-#: assets/translation-screen.js:947
+#: assets/translation-screen.js:962
 msgid "Esterno"
 msgstr ""
 
-#: assets/translation-screen.js:948
+#: assets/translation-screen.js:963
 msgid "Email"
 msgstr ""
 
-#: assets/translation-screen.js:949
+#: assets/translation-screen.js:964
 msgid "Telefono"
 msgstr ""
 
-#: assets/translation-screen.js:950
+#: assets/translation-screen.js:965
 msgid "Articolo"
 msgstr ""
 
-#: assets/translation-screen.js:951
+#: assets/translation-screen.js:966
 msgid "Interno"
 msgstr ""
 
-#: assets/translation-screen.js:959
+#: assets/translation-screen.js:974
 #, js-format
 msgid "%d link"
 msgid_plural "%d link"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:961
+#: assets/translation-screen.js:976
 #, js-format
 msgid "%d da controllare"
 msgid_plural "%d da controllare"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:963
+#: assets/translation-screen.js:978
 msgid "Link"
 msgstr ""
 
-#: assets/translation-screen.js:965
+#: assets/translation-screen.js:980
 msgid "Nessun link in questa pagina."
 msgstr ""
 
-#: assets/translation-screen.js:968
+#: assets/translation-screen.js:983
 #, js-format
 msgid "I link alle pagine del sito si convertono da soli nella versione %s quando quella pagina è tradotta e pubblicata (es. /%s/…). Quelli verso pagine non ancora tradotte restano in italiano finché non le traduci: allora il plugin propone di aggiornarli. Togli la spunta \"Traduci\" per lasciare un link in italiano; un URL manuale ha la precedenza su tutto. Ancore, file, email e siti esterni restano uguali, salvo URL manuale."
 msgstr ""
 
-#: assets/translation-screen.js:971
+#: assets/translation-screen.js:986
 msgid "Contesto"
 msgstr ""
 
-#: assets/translation-screen.js:972
+#: assets/translation-screen.js:987
 msgid "URL originale"
 msgstr ""
 
-#: assets/translation-screen.js:973
+#: assets/translation-screen.js:988
 msgid "URL proposto"
 msgstr ""
 
-#: assets/translation-screen.js:975
+#: assets/translation-screen.js:990
 msgid "URL manuale"
 msgstr ""
 
-#: assets/translation-screen.js:990
+#: assets/translation-screen.js:1005
 msgid "Versione nella lingua (facoltativo)"
 msgstr ""
 
-#: assets/translation-screen.js:991
+#: assets/translation-screen.js:1006
 #, js-format
 msgid "URL manuale per %s"
 msgstr ""
 
-#: assets/translation-screen.js:1003
+#: assets/translation-screen.js:1018
 #, js-format
 msgid "Traduci il link %s"
 msgstr ""
 
-#: assets/translation-screen.js:1017
+#: assets/translation-screen.js:1032
 msgid "Traduci quella pagina"
 msgstr ""
 
-#: assets/translation-screen.js:1020
+#: assets/translation-screen.js:1035
 msgid "Il link italiano è cambiato: la scelta precedente non vale più."
 msgstr ""
 
-#: assets/translation-screen.js:1025
+#: assets/translation-screen.js:1040
 msgid "resta uguale"
 msgstr ""
 
-#: assets/translation-screen.js:1026
+#: assets/translation-screen.js:1041
 msgid "Questo tipo di link non si traduce: se serve, usa l'URL manuale."
 msgstr ""
 
-#: assets/translation-screen.js:1026
+#: assets/translation-screen.js:1041
 msgid "Non traducibile"
 msgstr ""
 
-#: assets/translation-screen.js:1037
+#: assets/translation-screen.js:1052
 msgid "Menu e shortcode non si traducono: si sceglie la versione da usare in questa lingua (per esempio il menu \"EN\" creato in Aspetto → Menu, o il form tradotto creato in Forminator). Le scelte valgono anche per gli aggiornamenti successivi."
 msgstr ""
 
-#: assets/translation-screen.js:1046
+#: assets/translation-screen.js:1061
 msgid "Dove"
 msgstr ""
 
-#: assets/translation-screen.js:1047
+#: assets/translation-screen.js:1062
 msgid "Originale"
 msgstr ""
 
-#: assets/translation-screen.js:1048
+#: assets/translation-screen.js:1063
 #, js-format
 msgid "Da usare in %s"
 msgstr ""
 
-#: assets/translation-screen.js:1056
+#: assets/translation-screen.js:1071
 #, js-format
 msgid "Menu da usare in %s"
 msgstr ""
 
-#: assets/translation-screen.js:1062
+#: assets/translation-screen.js:1077
 msgid "(originale)"
 msgstr ""
 
-#: assets/translation-screen.js:1069
+#: assets/translation-screen.js:1084
 #, js-format
 msgid "Shortcode da usare in %s"
 msgstr ""
 
-#: assets/translation-screen.js:1078
+#: assets/translation-screen.js:1093
 msgid "Menu proposto: controlla e salva"
 msgstr ""
 
-#: assets/translation-screen.js:1081
+#: assets/translation-screen.js:1096
 msgid "L'originale è cambiato: la scelta precedente non vale più."
 msgstr ""
 
-#: assets/translation-screen.js:1084
+#: assets/translation-screen.js:1099
 msgid "Duplica il form in Forminator, traducilo (campi, messaggi, email) e inserisci qui il suo shortcode."
 msgstr ""
 
-#: assets/translation-screen.js:1086
+#: assets/translation-screen.js:1101
 msgid "Menu"
 msgstr ""
 
-#: assets/translation-screen.js:1086
+#: assets/translation-screen.js:1101
 msgid "Shortcode nel testo"
 msgstr ""
 
-#: assets/translation-screen.js:1086
+#: assets/translation-screen.js:1101
 msgid "Shortcode"
 msgstr ""
 
-#: assets/translation-screen.js:1097
+#: assets/translation-screen.js:1112
 msgid "Riferimenti (menu e shortcode)"
 msgstr ""
 
-#: assets/translation-screen.js:1097
+#: assets/translation-screen.js:1112
 #, js-format
 msgid "%1$d · %2$d personalizzati per questa lingua"
 msgstr ""
 
-#: assets/translation-screen.js:1102
+#: assets/translation-screen.js:1117
 #, js-format
 msgid "%1$d / %2$d caratteri"
 msgstr ""
 
-#: assets/translation-screen.js:1109
+#: assets/translation-screen.js:1124
 #, js-format
 msgid "%d campo da compilare"
 msgid_plural "%d campi da compilare"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:1109
+#: assets/translation-screen.js:1124
 msgid "completa"
 msgstr ""
 
-#: assets/translation-screen.js:1112
+#: assets/translation-screen.js:1127
 #, js-format
 msgid "È attivo %s: meta title e description vengono scritti nei suoi campi della pagina tradotta; title, description, canonical e Open Graph li stampa lui. Il plugin aggiunge gli hreflang."
 msgstr ""
 
-#: assets/translation-screen.js:1115
+#: assets/translation-screen.js:1130
 msgid "Anteprima nei risultati di ricerca"
 msgstr ""
 
-#: assets/translation-screen.js:1121
+#: assets/translation-screen.js:1136
 msgid "(nessuna description: il motore di ricerca sceglierà un estratto della pagina)"
 msgstr ""
 
-#: assets/translation-screen.js:1149
+#: assets/translation-screen.js:1164
 msgid "Meta title"
 msgstr ""
 
-#: assets/translation-screen.js:1149
-#: assets/translation-screen.js:1151
+#: assets/translation-screen.js:1164
+#: assets/translation-screen.js:1166
 #, js-format
 msgid "Originale: %s"
 msgstr ""
 
-#: assets/translation-screen.js:1151
+#: assets/translation-screen.js:1166
 msgid "La pagina italiana non ha una description."
 msgstr ""
 
-#: assets/translation-screen.js:1159
+#: assets/translation-screen.js:1174
 msgid "Testi alternativi delle immagini"
 msgstr ""
 
-#: assets/translation-screen.js:1163
+#: assets/translation-screen.js:1178
 msgid "Testo alternativo originale"
 msgstr ""
 
-#: assets/translation-screen.js:1170
+#: assets/translation-screen.js:1185
 msgid "(vuoto nella libreria media)"
 msgstr ""
 
-#: assets/translation-screen.js:1173
+#: assets/translation-screen.js:1188
 #, js-format
 msgid "Testo alternativo tradotto di %s"
 msgstr ""
 
-#: assets/translation-screen.js:1184
+#: assets/translation-screen.js:1199
 msgid "SEO"
 msgstr ""
 
-#: assets/translation-screen.js:1193
+#: assets/translation-screen.js:1208
 #, js-format
 msgid "%1$d pagina in %2$s punta ancora alla versione italiana di questa pagina:"
 msgid_plural "%1$d pagine in %2$s puntano ancora alla versione italiana di questa pagina:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:1198
+#: assets/translation-screen.js:1213
 msgid "Aggiorna i link in queste pagine"
 msgstr ""
 
-#: assets/translation-screen.js:1206
+#: assets/translation-screen.js:1221
 #, js-format
 msgid "Link aggiornati in %d pagina."
 msgid_plural "Link aggiornati in %d pagine."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:1219
+#: assets/translation-screen.js:1225
+msgid "Errore durante l'aggiornamento dei link."
+msgstr ""
+
+#: assets/translation-screen.js:1234
 msgid "Salva bozza traduzione"
 msgstr ""
 
-#: assets/translation-screen.js:1224
+#: assets/translation-screen.js:1239
 msgid "Aggiorna pagina"
 msgstr ""
 
-#: assets/translation-screen.js:1224
+#: assets/translation-screen.js:1239
 msgid "Crea pagina"
 msgstr ""
 
-#: assets/translation-screen.js:1273
+#: assets/translation-screen.js:1288
 msgid "La pagina tradotta è pubblicata: aggiornandola con lo stato \"Bozza\" non sarà più visibile ai visitatori. Continuare?"
 msgstr ""
 
-#: assets/translation-screen.js:1277
+#: assets/translation-screen.js:1292
 #, js-format
 msgid "C'è %d proposta automatica non confermata: verrà usata così com'è. Continuare?"
 msgid_plural "Ci sono %d proposte automatiche non confermate: verranno usate così come sono. Continuare?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:1289
+#: assets/translation-screen.js:1306
 msgid "Pagina tradotta creata."
 msgstr ""
 
-#: assets/translation-screen.js:1289
+#: assets/translation-screen.js:1306
 msgid "Pagina tradotta aggiornata."
 msgstr ""
 
-#: assets/translation-screen.js:1290
+#: assets/translation-screen.js:1307
 #, js-format
 msgid "%d testo è rimasto in italiano."
 msgid_plural "%d testi sono rimasti in italiano."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:1295
+#: assets/translation-screen.js:1312
 msgid "Bozza della traduzione salvata. La pagina tradotta non è stata modificata."
 msgstr ""
 
-#: assets/translation-screen.js:1298
+#: assets/translation-screen.js:1315
 #, js-format
 msgid "In %d testo parte del markup HTML è stata rimossa perché non hai il permesso di inserire HTML libero."
 msgid_plural "In %d testi parte del markup HTML è stata rimossa perché non hai il permesso di inserire HTML libero."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/translation-screen.js:1304
+#: assets/translation-screen.js:1321
 msgid "Creare o aggiornare la pagina comunque?"
 msgstr ""
 
-#: assets/translation-screen.js:1310
+#: assets/translation-screen.js:1327
 msgid "Aggiornare comunque e sovrascrivere le modifiche manuali?"
 msgstr ""
 
-#: assets/translation-screen.js:1315
+#: assets/translation-screen.js:1332
 msgid "Errore durante il salvataggio."
 msgstr ""

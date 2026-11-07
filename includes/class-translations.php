@@ -179,9 +179,29 @@ final class Translations {
 	 *
 	 * @param int $post_id Post ID.
 	 */
-	public static function data_hash( int $post_id ): string {
+	public static function data_hash( int $post_id, bool $portable = true ): string {
 		$raw = get_post_meta( $post_id, '_elementor_data', true );
-		return sha1( is_string( $raw ) ? $raw : (string) wp_json_encode( $raw ) );
+		$raw = is_string( $raw ) ? $raw : (string) wp_json_encode( $raw );
+		return sha1( $portable ? self::portable( $raw ) : $raw );
+	}
+
+	/**
+	 * Text with the site address replaced by a placeholder, so hashes survive a clone of the
+	 * site with a new domain or folder (Duplicator, Better Search Replace, WP Staging push).
+	 * Matches http and https, with or without www, with plain or JSON-escaped slashes.
+	 *
+	 * @param string $text Text.
+	 */
+	public static function portable( string $text ): string {
+		$home = wp_parse_url( home_url() );
+		$host = preg_replace( '/^www\./i', '', (string) ( $home['host'] ?? '' ) ) . ( isset( $home['port'] ) ? ':' . $home['port'] : '' );
+		if ( '' === $host ) {
+			return $text;
+		}
+		$path    = rtrim( (string) ( $home['path'] ?? '' ), '/' );
+		$slash   = '\\\\?/';
+		$pattern = '#https?:(?:' . $slash . '){2}(?:www\.)?' . preg_quote( $host, '#' ) . str_replace( '/', $slash, preg_quote( $path, '#' ) ) . '(?![\w.-])#i';
+		return (string) preg_replace( $pattern, '{home}', $text );
 	}
 
 	/**
@@ -190,10 +210,11 @@ final class Translations {
 	 *
 	 * @param int $source_id Italian page ID.
 	 */
-	public static function source_fingerprint( int $source_id ): string {
+	public static function source_fingerprint( int $source_id, bool $portable = true ): string {
+		$settings = (string) wp_json_encode( get_post_meta( $source_id, '_elementor_page_settings', true ) );
 		return sha1(
-			self::data_hash( $source_id ) . '|' .
-			(string) wp_json_encode( get_post_meta( $source_id, '_elementor_page_settings', true ) ) . '|' .
+			self::data_hash( $source_id, $portable ) . '|' .
+			( $portable ? self::portable( $settings ) : $settings ) . '|' .
 			(string) get_post_meta( $source_id, '_wp_page_template', true ) . '|' .
 			(string) get_post_meta( $source_id, '_thumbnail_id', true )
 		);
@@ -205,8 +226,24 @@ final class Translations {
 	 * @param int    $source_id Italian page ID.
 	 * @param string $lang      Language.
 	 */
-	public static function strings_hash( int $source_id, string $lang ): string {
-		return sha1( (string) wp_json_encode( array( self::strings( $source_id, $lang ), self::page_fields( $source_id, $lang ), Links::choices( $source_id, $lang ), get_post_meta( $source_id, '_ept_seo_' . $lang, true ), Refs::choices( $source_id, $lang ) ) ) );
+	public static function strings_hash( int $source_id, string $lang, bool $portable = true ): string {
+		$json = (string) wp_json_encode( array( self::strings( $source_id, $lang ), self::page_fields( $source_id, $lang ), Links::choices( $source_id, $lang ), get_post_meta( $source_id, '_ept_seo_' . $lang, true ), Refs::choices( $source_id, $lang ) ) );
+		return sha1( $portable ? self::portable( $json ) : $json );
+	}
+
+	/**
+	 * Whether a saved translation was made for this original text: same hash, or same
+	 * original once the site address is ignored (cloned site).
+	 *
+	 * @param array<string,mixed> $entry Saved entry (h = hash, o = original).
+	 * @param array<string,mixed> $item  Extracted string.
+	 */
+	public static function same_original( array $entry, array $item ): bool {
+		if ( ( $entry['h'] ?? '' ) === $item['hash'] ) {
+			return true;
+		}
+		$old = (string) ( $entry['o'] ?? '' );
+		return '' !== $old && Extractor::normalize( self::portable( $old ) ) === Extractor::normalize( self::portable( (string) $item['text'] ) );
 	}
 
 	/**

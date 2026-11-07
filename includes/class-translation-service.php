@@ -205,7 +205,7 @@ final class Translation_Service {
 			$state = 'new';
 			$old   = '';
 			if ( is_array( $entry ) && ( '' !== (string) ( $entry['t'] ?? '' ) || in_array( $entry['s'] ?? '', array( Translations::STATUS_SAME, Translations::STATUS_EXCLUDED ), true ) ) ) {
-				$state = ( $entry['h'] ?? '' ) === $item['hash'] ? 'translated' : 'modified';
+				$state = Translations::same_original( $entry, $item ) ? 'translated' : 'modified';
 				$old   = 'modified' === $state ? Html_Tools::strip_noise( (string) ( $entry['o'] ?? '' ) ) : '';
 			}
 			// Simplified view: wrapper hidden, <br> as line breaks (only when original and translation share the wrapper).
@@ -737,7 +737,7 @@ final class Translation_Service {
 				if ( ! in_array( $item['key'], $was_empty, true ) ) {
 					++$out['new'];
 				}
-			} elseif ( ( $entry['h'] ?? '' ) !== $item['hash'] ) {
+			} elseif ( ! Translations::same_original( $entry, $item ) ) {
 				++$out['modified'];
 			}
 		}

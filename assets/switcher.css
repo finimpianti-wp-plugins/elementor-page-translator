@@ -358,21 +358,67 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 	outline-offset: 2px;
 }
 
-/* Desktop (UAE menu shown horizontally): the open languages are a small card of their own,
- * whatever the colours of the menu's sub-menus. In the hamburger menu (mobile) they keep
- * the look of the other entries. */
+/* Desktop (UAE menu shown horizontally): flag + arrow and the open languages form one
+ * block — on hover the toggle becomes a white tab that continues into the list below,
+ * same width, flags aligned in a column. In the hamburger menu (mobile) the entries keep
+ * the look of the other menu entries. */
 @media (min-width: 768px) {
-.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu {
-	left: auto !important;
-	right: 0 !important;
-	min-width: 0 !important;
-	width: max-content !important;
-	margin-top: 6px !important;
-	padding: 6px !important;
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown {
+	position: relative;
+	align-self: center;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
+	padding: 8px 10px !important;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	border-radius: 10px;
+	transition: background-color .15s, color .15s, border-radius .15s;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown.focus > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item {
 	background: #fff !important;
-	border: 1px solid rgba(0, 0, 0, .08) !important;
-	border-radius: 10px !important;
-	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06) !important;
+	color: #1f2a24 !important;
+	border-radius: 10px 10px 0 0;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow,
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	color: inherit !important;
+	margin-left: 6px !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	display: inline-block;
+	transition: transform .2s;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i,
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	transform: rotate(180deg);
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu {
+	top: 100% !important;
+	left: 0 !important;
+	right: auto !important;
+	min-width: 100% !important;
+	width: max-content !important;
+	margin: 0 !important;
+	padding: 0 0 6px !important;
+	background: #fff !important;
+	border: 0 !important;
+	border-radius: 0 0 10px 10px !important;
+	box-shadow: 0 16px 24px -12px rgba(0, 0, 0, .3) !important;
+	transition: opacity .15s, visibility .15s !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu::before,
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu::after {
+	display: none !important;
 }
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu > li {
@@ -383,9 +429,9 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px 12px !important;
+	padding: 8px 10px !important;
 	border: 0 !important;
-	border-radius: 6px !important;
+	border-radius: 0 !important;
 	background: transparent !important;
 	color: #1f2a24 !important;
 	font-size: 15px !important;
@@ -394,22 +440,67 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
-	background: #f1f4f2 !important;
+	background: #eef3f0 !important;
 	color: #1f2a24 !important;
 }
 }
 @media (min-width: 1025px) {
-.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu {
-	left: auto !important;
-	right: 0 !important;
-	min-width: 0 !important;
-	width: max-content !important;
-	margin-top: 6px !important;
-	padding: 6px !important;
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown {
+	position: relative;
+	align-self: center;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
+	padding: 8px 10px !important;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	border-radius: 10px;
+	transition: background-color .15s, color .15s, border-radius .15s;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown.focus > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item {
 	background: #fff !important;
-	border: 1px solid rgba(0, 0, 0, .08) !important;
-	border-radius: 10px !important;
-	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06) !important;
+	color: #1f2a24 !important;
+	border-radius: 10px 10px 0 0;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow,
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	color: inherit !important;
+	margin-left: 6px !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	display: inline-block;
+	transition: transform .2s;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i,
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	transform: rotate(180deg);
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu {
+	top: 100% !important;
+	left: 0 !important;
+	right: auto !important;
+	min-width: 100% !important;
+	width: max-content !important;
+	margin: 0 !important;
+	padding: 0 0 6px !important;
+	background: #fff !important;
+	border: 0 !important;
+	border-radius: 0 0 10px 10px !important;
+	box-shadow: 0 16px 24px -12px rgba(0, 0, 0, .3) !important;
+	transition: opacity .15s, visibility .15s !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu::before,
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu::after {
+	display: none !important;
 }
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu > li {
@@ -420,9 +511,9 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px 12px !important;
+	padding: 8px 10px !important;
 	border: 0 !important;
-	border-radius: 6px !important;
+	border-radius: 0 !important;
 	background: transparent !important;
 	color: #1f2a24 !important;
 	font-size: 15px !important;
@@ -431,21 +522,66 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
-	background: #f1f4f2 !important;
+	background: #eef3f0 !important;
 	color: #1f2a24 !important;
 }
 }
-.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu {
-	left: auto !important;
-	right: 0 !important;
-	min-width: 0 !important;
-	width: max-content !important;
-	margin-top: 6px !important;
-	padding: 6px !important;
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown {
+	position: relative;
+	align-self: center;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
+	padding: 8px 10px !important;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	border-radius: 10px;
+	transition: background-color .15s, color .15s, border-radius .15s;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown.focus > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item {
 	background: #fff !important;
-	border: 1px solid rgba(0, 0, 0, .08) !important;
-	border-radius: 10px !important;
-	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06) !important;
+	color: #1f2a24 !important;
+	border-radius: 10px 10px 0 0;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow,
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	color: inherit !important;
+	margin-left: 6px !important;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	display: inline-block;
+	transition: transform .2s;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i,
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item .sub-arrow i {
+	transform: rotate(180deg);
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu {
+	top: 100% !important;
+	left: 0 !important;
+	right: auto !important;
+	min-width: 100% !important;
+	width: max-content !important;
+	margin: 0 !important;
+	padding: 0 0 6px !important;
+	background: #fff !important;
+	border: 0 !important;
+	border-radius: 0 0 10px 10px !important;
+	box-shadow: 0 16px 24px -12px rgba(0, 0, 0, .3) !important;
+	transition: opacity .15s, visibility .15s !important;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu::before,
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu::after {
+	display: none !important;
 }
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu > li {
@@ -456,9 +592,9 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px 12px !important;
+	padding: 8px 10px !important;
 	border: 0 !important;
-	border-radius: 6px !important;
+	border-radius: 0 !important;
 	background: transparent !important;
 	color: #1f2a24 !important;
 	font-size: 15px !important;
@@ -467,6 +603,6 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
-	background: #f1f4f2 !important;
+	background: #eef3f0 !important;
 	color: #1f2a24 !important;
 }

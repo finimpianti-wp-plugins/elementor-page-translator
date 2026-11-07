@@ -44,6 +44,30 @@ final class Current_Language {
 	 */
 	public static function init(): void {
 		add_action( 'wp', array( self::class, 'detect' ), 1 );
+		add_filter( 'body_class', array( self::class, 'body_class' ) );
+	}
+
+	/**
+	 * Body classes: "ept-lang-{code}" on every front-end page; on a translated page also
+	 * "ept-translation" and the "page-id-{ID}" class of the Italian page, so CSS written for
+	 * the Italian page (e.g. ".page-id-58 …" in the additional CSS) applies to its
+	 * translations too.
+	 *
+	 * @param array<int,string> $classes Classes.
+	 * @return array<int,string>
+	 */
+	public static function body_class( $classes ) {
+		$classes   = is_array( $classes ) ? $classes : array();
+		$classes[] = 'ept-lang-' . sanitize_html_class( self::code() );
+		if ( is_singular() ) {
+			$id     = (int) get_queried_object_id();
+			$source = Translations::is_source( $id ) ? 0 : Translations::source_of( $id );
+			if ( $source ) {
+				$classes[] = 'ept-translation';
+				$classes[] = 'page-id-' . $source;
+			}
+		}
+		return array_values( array_unique( $classes ) );
 	}
 
 	/**

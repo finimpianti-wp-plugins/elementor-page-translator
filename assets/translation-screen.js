@@ -971,16 +971,32 @@
 		const wrap = el( 'div', { className: 'ept-links' } );
 		const links = data.links || [];
 		const pending = links.filter( ( link ) => link.untranslated || link.changed ).length;
+		const suggested = links.filter( ( link ) => linkSuggestionPending( link ) );
 		let count = sprintf( _n( '%d link', '%d link', links.length, 'ept' ), links.length );
 		if ( pending ) {
 			count += ' · ' + sprintf( _n( '%d da controllare', '%d da controllare', pending, 'ept' ), pending );
 		}
-		const node = panel( 'links', 'h2', __( 'Link', 'ept' ), links.length ? count : '', pending > 0, [ wrap ] );
+		if ( suggested.length ) {
+			count += ' · ' + sprintf( _n( '%d suggerimento', '%d suggerimenti', suggested.length, 'ept' ), suggested.length );
+		}
+		const node = panel( 'links', 'h2', __( 'Link', 'ept' ), links.length ? count : '', pending > 0 || suggested.length > 0, [ wrap ] );
 		if ( ! links.length ) {
 			wrap.appendChild( el( 'p', { text: __( 'Nessun link in questa pagina.', 'ept' ) } ) );
 			return node;
 		}
 		wrap.appendChild( el( 'p', { className: 'description', text: sprintf( __( 'I link alle pagine del sito si convertono da soli nella versione %s quando quella pagina è tradotta e pubblicata (es. /%s/…). Quelli verso pagine non ancora tradotte restano in italiano finché non le traduci: allora il plugin propone di aggiornarli. Togli la spunta "Traduci" per lasciare un link in italiano; un URL manuale ha la precedenza su tutto. Ancore, file, email e siti esterni restano uguali, salvo URL manuale.', 'ept' ), data.lang.name, data.lang.prefix ) } ) );
+		if ( suggested.length > 1 ) {
+			wrap.appendChild( el( 'p', {}, [ el( 'button', {
+				type: 'button',
+				className: 'button',
+				text: sprintf( __( 'Usa tutti i suggerimenti (%d)', 'ept' ), suggested.length ),
+				onClick: () => {
+					suggested.forEach( ( link ) => applyLinkSuggestion( link ) );
+					setDirty( true );
+					rerenderLinks();
+				},
+			} ) ] ) );
+		}
 		const table = el( 'table', { className: 'widefat striped ept-links-table' } );
 		table.appendChild( el( 'thead', {}, [ el( 'tr', {}, [
 			el( 'th', { scope: 'col', text: __( 'Contesto', 'ept' ) } ),
@@ -994,6 +1010,28 @@
 		table.appendChild( body );
 		wrap.appendChild( table );
 		return node;
+	}
+
+	// Link memory: choice made for the same link on other pages, not applied yet here.
+	function linkSuggestionPending( link ) {
+		const sug = link.suggestion;
+		const st = linkState[ link.key ];
+		return !! sug && !! st && st.mode === 'translate' && ! st.url && ! ( sug.mode === 'manual' && sug.url === st.url );
+	}
+
+	function applyLinkSuggestion( link ) {
+		const st = linkState[ link.key ];
+		st.mode = link.suggestion.mode;
+		st.url = link.suggestion.mode === 'manual' ? link.suggestion.url : '';
+	}
+
+	function rerenderLinks() {
+		const old = document.querySelector( '[data-panel="links"]' );
+		if ( old ) {
+			const fresh = renderLinks();
+			fresh.open = true;
+			old.replaceWith( fresh );
+		}
 	}
 
 	function renderLinkRow( link ) {
@@ -1033,6 +1071,28 @@
 		}
 		if ( link.changed ) {
 			info.appendChild( el( 'p', { className: 'ept-warning', text: __( 'Il link italiano è cambiato: la scelta precedente non vale più.', 'ept' ) } ) );
+		}
+		if ( linkSuggestionPending( link ) ) {
+			const sug = link.suggestion;
+			const box = el( 'div', { className: 'ept-suggestion' }, [
+				el( 'span', { className: 'ept-tag ept-tag--suggest', text: __( 'Usato in altre pagine', 'ept' ) } ),
+				sug.mode === 'manual' ? el( 'code', { className: 'ept-url', text: sug.url } ) : el( 'span', { text: __( 'lasciato in italiano', 'ept' ) } ),
+				el( 'button', {
+					type: 'button',
+					className: 'button button-small',
+					text: __( 'Usa', 'ept' ),
+					onClick: () => {
+						applyLinkSuggestion( link );
+						manual.value = st.mode === 'manual' ? st.url : '';
+						if ( checkbox ) {
+							checkbox.checked = st.mode !== 'keep';
+						}
+						box.remove();
+						setDirty( true );
+					},
+				} ),
+			] );
+			info.appendChild( box );
 		}
 		return el( 'tr', { 'data-link': link.key }, [
 			el( 'td', {}, [ el( 'strong', { text: link.widget } ), link.context ? el( 'div', { className: 'description', text: link.context } ) : null ] ),

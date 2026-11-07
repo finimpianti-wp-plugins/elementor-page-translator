@@ -26,6 +26,12 @@ final class Links {
 	public const MODE_KEEP      = 'keep';
 	public const MODE_MANUAL    = 'manual';
 
+	/**
+	 * Link memory: choices made for a link (manual URL or "leave in Italian"), per language,
+	 * proposed on other pages with the same link. lang => key => {mode, url, time}.
+	 */
+	public const MEMORY_OPTION = 'ept_link_memory';
+
 	public const STATE_TRANSLATED = 'translated';
 	public const STATE_ITALIAN    = 'italian';
 	public const STATE_MANUAL     = 'manual';
@@ -259,6 +265,8 @@ final class Links {
 			$current[ $link['key'] ] = $link;
 		}
 		$choices = self::choices( $source_id, $lang );
+		$memory  = self::memory( $lang );
+		$changed = false;
 		foreach ( $posted as $key => $row ) {
 			$key = (string) $key;
 			if ( ! isset( $current[ $key ] ) || ! is_array( $row ) ) {
@@ -269,6 +277,24 @@ final class Links {
 			if ( self::MODE_MANUAL === $mode && '' === $url ) {
 				$mode = self::MODE_TRANSLATE;
 			}
+			// Link memory: remember a manual URL or "leave in Italian"; forget it when this
+			// page goes back to the automatic choice.
+			$memory_key = self::memory_key( $current[ $key ] );
+			$previous   = $choices[ $key ] ?? null;
+			if ( self::MODE_TRANSLATE !== $mode ) {
+				$entry = array(
+					'mode' => $mode,
+					'url'  => $url,
+				);
+				if ( ! isset( $memory[ $memory_key ] ) || array_intersect_key( $memory[ $memory_key ], $entry ) !== $entry ) {
+					$memory[ $memory_key ] = $entry + array( 'time' => time() );
+					$changed               = true;
+				}
+			} elseif ( is_array( $previous ) && self::MODE_TRANSLATE !== ( $previous['mode'] ?? '' ) && isset( $memory[ $memory_key ] )
+				&& ( $memory[ $memory_key ]['mode'] ?? '' ) === ( $previous['mode'] ?? '' ) && ( $memory[ $memory_key ]['url'] ?? '' ) === ( $previous['url'] ?? '' ) ) {
+				unset( $memory[ $memory_key ] );
+				$changed = true;
+			}
 			$choices[ $key ] = array(
 				'mode' => $mode,
 				'url'  => $url,
@@ -276,6 +302,45 @@ final class Links {
 			);
 		}
 		update_post_meta( $source_id, '_ept_links_' . $lang, wp_slash( $choices ) );
+		if ( $changed ) {
+			$all          = get_option( self::MEMORY_OPTION, array() );
+			$all          = is_array( $all ) ? $all : array();
+			$all[ $lang ] = $memory;
+			update_option( self::MEMORY_OPTION, $all, false );
+		}
+	}
+
+	/**
+	 * Link memory of a language: key => {mode, url, time}.
+	 *
+	 * @param string $lang Language.
+	 * @return array<string,array{mode:string,url:string,time:int}>
+	 */
+	public static function memory( string $lang ): array {
+		$all = get_option( self::MEMORY_OPTION, array() );
+		return is_array( $all ) && isset( $all[ $lang ] ) && is_array( $all[ $lang ] ) ? $all[ $lang ] : array();
+	}
+
+	/**
+	 * Key of a link in the memory: the target post for query links; for internal URLs the
+	 * path relative to the site (with query and anchor), so it survives a change of domain;
+	 * otherwise the URL itself.
+	 *
+	 * @param array<string,mixed> $link Extracted link.
+	 */
+	public static function memory_key( array $link ): string {
+		if ( 'query' === ( $link['kind'] ?? '' ) ) {
+			return 'post:' . (int) $link['post_id'];
+		}
+		$url  = trim( (string) ( $link['url'] ?? '' ) );
+		$path = self::internal_path( $url );
+		if ( null === $path || ! preg_match( '#^(?:https?:)?//|^/#i', $url ) ) {
+			return 'url:' . strtolower( $url );
+		}
+		$parts = wp_parse_url( $url );
+		$path  = '/' . trim( $path, '/' );
+		$path  = '/' === $path ? '/' : $path . '/';
+		return 'path:' . $path . ( isset( $parts['query'] ) ? '?' . $parts['query'] : '' ) . ( isset( $parts['fragment'] ) ? '#' . $parts['fragment'] : '' );
 	}
 
 	/**
@@ -344,9 +409,33 @@ final class Links {
 				'mode'         => $mode,
 				'manual'       => is_array( $choice ) && ! $stale ? (string) $choice['url'] : '',
 				'changed'      => $stale,
+				'suggestion'   => self::suggestion( $link, $lang, is_array( $choice ) && ! $stale ? $choice : null ),
 			);
 		}
 		return $rows;
+	}
+
+	/**
+	 * Choice remembered from other pages for this link, when this page has not decided yet
+	 * (no choice, or the automatic one) and the remembered one is different.
+	 *
+	 * @param array<string,mixed>       $link   Extracted link.
+	 * @param string                    $lang   Language.
+	 * @param array<string,string>|null $choice Valid choice of this page.
+	 * @return array{mode:string,url:string}|null
+	 */
+	private static function suggestion( array $link, string $lang, ?array $choice ): ?array {
+		if ( is_array( $choice ) && self::MODE_TRANSLATE !== ( $choice['mode'] ?? '' ) ) {
+			return null;
+		}
+		$entry = self::memory( $lang )[ self::memory_key( $link ) ] ?? null;
+		if ( ! is_array( $entry ) || ! in_array( $entry['mode'] ?? '', array( self::MODE_KEEP, self::MODE_MANUAL ), true ) ) {
+			return null;
+		}
+		return array(
+			'mode' => (string) $entry['mode'],
+			'url'  => (string) ( $entry['url'] ?? '' ),
+		);
 	}
 
 	/**

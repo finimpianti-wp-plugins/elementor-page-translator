@@ -29,12 +29,91 @@ final class Menu_Switcher {
 	public const FLAT     = '#ept-languages-flat';
 
 	/**
+	 * What is shown next to the flags: flag (only the flags), code (IT, EN), name (Italiano, English).
+	 */
+	public const TEXT_META = '_ept_switcher_text';
+
+	/**
 	 * Hooks.
 	 */
 	public static function init(): void {
 		add_filter( 'wp_nav_menu_objects', array( self::class, 'expand' ), 20, 2 );
 		add_filter( 'wp_setup_nav_menu_item', array( self::class, 'label_in_admin' ) );
 		add_action( 'admin_head-nav-menus.php', array( self::class, 'meta_box' ) );
+		add_action( 'wp_nav_menu_item_custom_fields', array( self::class, 'item_fields' ), 10, 2 );
+		add_action( 'wp_update_nav_menu_item', array( self::class, 'save_item_fields' ), 10, 2 );
+	}
+
+	/**
+	 * Text shown next to the flags for a switcher item.
+	 *
+	 * @param object $item Menu item.
+	 */
+	public static function text_of( $item ): string {
+		$id   = (int) ( $item->db_id ?? $item->ID ?? 0 );
+		$text = $id > 0 ? (string) get_post_meta( $id, self::TEXT_META, true ) : '';
+		return in_array( $text, array( 'flag', 'code', 'name' ), true ) ? $text : 'flag';
+	}
+
+	/**
+	 * Options in the panel of the item (Appearance -> Menus, click on the item).
+	 *
+	 * @param int    $item_id Item ID.
+	 * @param object $item    Item.
+	 */
+	public static function item_fields( $item_id, $item ): void {
+		$mode = self::mode_of( $item );
+		if ( '' === $mode ) {
+			return;
+		}
+		$item_id = (int) $item_id;
+		$text    = self::text_of( $item );
+		// The URL of this item is technical: hidden, the choices below replace it.
+		echo '<style>#menu-item-settings-' . (int) $item_id . ' .field-url{display:none}</style>';
+		?>
+		<p class="description description-wide ept-switcher-fields">
+			<label for="ept-switcher-mode-<?php echo (int) $item_id; ?>"><?php esc_html_e( 'Selettore lingua: aspetto', 'ept' ); ?><br>
+				<select id="ept-switcher-mode-<?php echo (int) $item_id; ?>" name="ept-switcher-mode[<?php echo (int) $item_id; ?>]" class="widefat">
+					<option value="dropdown" <?php selected( $mode, 'dropdown' ); ?>><?php esc_html_e( 'Tendina: lingua corrente, le altre si aprono sotto', 'ept' ); ?></option>
+					<option value="flat" <?php selected( $mode, 'flat' ); ?>><?php esc_html_e( 'In fila: tutte le lingue una accanto all\'altra', 'ept' ); ?></option>
+				</select>
+			</label>
+		</p>
+		<p class="description description-wide ept-switcher-fields">
+			<label for="ept-switcher-text-<?php echo (int) $item_id; ?>"><?php esc_html_e( 'Accanto alle bandiere', 'ept' ); ?><br>
+				<select id="ept-switcher-text-<?php echo (int) $item_id; ?>" name="ept-switcher-text[<?php echo (int) $item_id; ?>]" class="widefat">
+					<option value="flag" <?php selected( $text, 'flag' ); ?>><?php esc_html_e( 'Niente: solo le bandiere', 'ept' ); ?></option>
+					<option value="code" <?php selected( $text, 'code' ); ?>><?php esc_html_e( 'La sigla (IT, EN)', 'ept' ); ?></option>
+					<option value="name" <?php selected( $text, 'name' ); ?>><?php esc_html_e( 'Il nome (Italiano, English)', 'ept' ); ?></option>
+				</select>
+			</label>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Save the options of a switcher item (the menu form is already checked by WordPress:
+	 * nonce "update-nav_menu" and the edit_theme_options capability).
+	 *
+	 * @param int $menu_id Menu ID.
+	 * @param int $item_id Item ID.
+	 */
+	public static function save_item_fields( $menu_id, $item_id ): void {
+		unset( $menu_id );
+		$item_id = (int) $item_id;
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return;
+		}
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by wp-admin/nav-menus.php (update-nav_menu).
+		if ( isset( $_POST['ept-switcher-text'][ $item_id ] ) ) {
+			$text = sanitize_key( wp_unslash( $_POST['ept-switcher-text'][ $item_id ] ) );
+			update_post_meta( $item_id, self::TEXT_META, in_array( $text, array( 'flag', 'code', 'name' ), true ) ? $text : 'flag' );
+		}
+		if ( isset( $_POST['ept-switcher-mode'][ $item_id ] ) ) {
+			$mode = sanitize_key( wp_unslash( $_POST['ept-switcher-mode'][ $item_id ] ) );
+			update_post_meta( $item_id, '_menu_item_url', 'flat' === $mode ? self::FLAT : self::DROPDOWN );
+		}
+		// phpcs:enable
 	}
 
 	/**
@@ -66,13 +145,14 @@ final class Menu_Switcher {
 	 */
 	public static function render_meta_box(): void {
 		$variants = array(
-			-1 => array( self::DROPDOWN, __( 'Tendina: bandiera della lingua corrente, le altre lingue nel sottomenu', 'ept' ) ),
-			-2 => array( self::FLAT, __( 'In fila: una voce per ogni lingua (bandiera e nome)', 'ept' ) ),
+			-1 => array( self::DROPDOWN, __( 'Tendina: bandiera della lingua corrente, le altre si aprono sotto', 'ept' ) ),
+			-2 => array( self::FLAT, __( 'In fila: tutte le bandiere una accanto all\'altra', 'ept' ) ),
 		);
 		?>
 		<div id="ept-language-switcher-items" class="posttypediv">
 			<p class="description"><?php esc_html_e( 'Aggiunge le lingue a questo menu: nel menu del computer e, su mobile, dentro il menu hamburger. Aggiungilo a ogni menu usato nell\'header, anche a quelli delle altre lingue (es. "Menu EN").', 'ept' ); ?></p>
 			<?php self::render_menus_status(); ?>
+			<p class="description"><?php esc_html_e( 'Di base mostra solo le bandiere. Dopo averlo aggiunto, apri la voce "Lingue" nel menu per mostrare anche la sigla (IT, EN) o il nome (Italiano, English).', 'ept' ); ?></p>
 			<div class="tabs-panel tabs-panel-active">
 				<ul class="categorychecklist form-no-clear">
 					<?php foreach ( $variants as $index => $variant ) : ?>
@@ -195,18 +275,17 @@ final class Menu_Switcher {
 			}
 		}
 		$current = $current ?? $languages[0];
+		$text    = self::text_of( $marker );
 		$parent  = self::item(
 			$marker,
 			(int) $marker->ID,
 			(int) $marker->menu_item_parent,
-			'<span class="ept-menu-lang__label">' . self::flag( $current ) . '<span class="ept-menu-lang__code">' . esc_html( strtoupper( (string) $current['code'] ) ) . '</span></span>',
+			self::label( $current, $text, true ),
 			'#',
-			array( 'ept-menu-lang', 'ept-menu-lang--dropdown', 'menu-item-has-children' )
+			array( 'ept-menu-lang', 'ept-menu-lang--dropdown', 'ept-menu-lang--text-' . $text, 'menu-item-has-children' )
 		);
-		/* translators: %s: current language name. */
-		$parent->attr_title = sprintf( __( 'Lingua: %s', 'ept' ), $current['name'] );
-		$out                = array( $parent );
-		$i                  = 0;
+		$out     = array( $parent );
+		$i       = 0;
 		foreach ( $languages as $language ) {
 			if ( $language['current'] ) {
 				continue;
@@ -215,9 +294,9 @@ final class Menu_Switcher {
 				$marker,
 				-1 * ( (int) $marker->ID * 100 + ( ++$i ) ),
 				(int) $marker->ID,
-				self::label( $language ),
+				self::label( $language, $text ),
 				(string) $language['url'],
-				array( 'ept-menu-lang__item', 'ept-menu-lang__item--' . sanitize_html_class( (string) $language['code'] ) )
+				array( 'ept-menu-lang__item', 'ept-menu-lang--text-' . $text, 'ept-menu-lang__item--' . sanitize_html_class( (string) $language['code'] ) )
 			);
 		}
 		return $out;
@@ -231,9 +310,10 @@ final class Menu_Switcher {
 	 * @return list<object>
 	 */
 	private static function flat( $marker, array $languages ): array {
-		$out = array();
+		$out  = array();
+		$text = self::text_of( $marker );
 		foreach ( $languages as $i => $language ) {
-			$classes = array( 'ept-menu-lang', 'ept-menu-lang--flat', 'ept-menu-lang__item--' . sanitize_html_class( (string) $language['code'] ) );
+			$classes = array( 'ept-menu-lang', 'ept-menu-lang--flat', 'ept-menu-lang--text-' . $text, 'ept-menu-lang__item--' . sanitize_html_class( (string) $language['code'] ) );
 			if ( $language['current'] ) {
 				$classes[] = 'ept-menu-lang--current';
 			}
@@ -241,7 +321,7 @@ final class Menu_Switcher {
 				$marker,
 				0 === $i ? (int) $marker->ID : -1 * ( (int) $marker->ID * 100 + $i ),
 				(int) $marker->menu_item_parent,
-				self::label( $language ),
+				self::label( $language, $text ),
 				(string) $language['url'],
 				$classes
 			);
@@ -250,16 +330,30 @@ final class Menu_Switcher {
 	}
 
 	/**
-	 * Flag + name of a language.
+	 * Flag and, depending on the option, code or name of a language. With the flag only, the
+	 * name stays for screen readers.
 	 *
 	 * @param array<string,mixed> $language Switcher item.
+	 * @param string              $text     flag|code|name.
+	 * @param bool                $current  Label of the current language (dropdown toggle).
 	 */
-	private static function label( array $language ): string {
-		// One wrapper: menus that spread the children of a link (flex, space-between) keep flag and name together.
-		$html = self::flag( $language ) . '<span class="ept-menu-lang__name" lang="' . esc_attr( Current_Language::bcp47( (string) $language['locale'] ) ) . '">' . esc_html( (string) $language['name'] ) . '</span>';
-		if ( empty( $language['public'] ) ) {
-			$html .= '<span class="ept-menu-lang__private">' . esc_html__( '(lingua non pubblica)', 'ept' ) . '</span>';
+	private static function label( array $language, string $text, bool $current = false ): string {
+		$lang = esc_attr( Current_Language::bcp47( (string) $language['locale'] ) );
+		$name = (string) $language['name'];
+		$html = self::flag( $language );
+		if ( 'code' === $text ) {
+			$html .= '<span class="ept-menu-lang__code" lang="' . $lang . '">' . esc_html( strtoupper( (string) $language['code'] ) ) . '</span>'
+				. '<span class="ept-sr">' . esc_html( $name ) . '</span>';
+		} elseif ( 'name' === $text ) {
+			$html .= '<span class="ept-menu-lang__name" lang="' . $lang . '">' . esc_html( $name ) . '</span>';
+		} else {
+			/* translators: %s: language name. */
+			$html .= '<span class="ept-sr">' . esc_html( $current ? sprintf( __( 'Lingua: %s', 'ept' ), $name ) : $name ) . '</span>';
 		}
+		if ( empty( $language['public'] ) ) {
+			$html .= '<span class="ept-menu-lang__private" title="' . esc_attr__( 'Lingua non ancora pubblica: la vedono solo gli utenti che possono modificare il sito.', 'ept' ) . '">*</span>';
+		}
+		// One wrapper: menus that spread the children of a link (flex, space-between) keep flag and text together.
 		return '<span class="ept-menu-lang__label">' . $html . '</span>';
 	}
 
@@ -270,7 +364,7 @@ final class Menu_Switcher {
 	 */
 	private static function flag( array $language ): string {
 		$url = Switcher::flag_url( (string) $language['locale'] );
-		return '' === $url ? '' : '<img class="ept-menu-flag" src="' . esc_url( $url ) . '" alt="" width="20" height="14" decoding="async">';
+		return '' === $url ? '' : '<img class="ept-menu-flag" src="' . esc_url( $url ) . '" alt="" width="22" height="16" decoding="async">';
 	}
 
 	/**

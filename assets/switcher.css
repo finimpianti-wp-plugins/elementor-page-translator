@@ -279,12 +279,23 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Language switcher inside a menu (Appearance -> Menus,              */
-/* also in the hamburger menu on mobile). The menu keeps its own       */
-/* fonts, colours and sub-menu style; only the flags are styled here.  */
+/* Language switcher inside a menu (Appearance -> Menus; also in the  */
+/* hamburger menu on mobile). The entries keep the menu's font and    */
+/* colours; flags and the open card are styled here.                  */
 /* ------------------------------------------------------------------ */
-.ept-menu-lang .ept-menu-lang__label,
-.ept-menu-lang__item .ept-menu-lang__label {
+.ept-sr {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.ept-menu-lang__label {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
@@ -295,31 +306,167 @@
 .ept-menu-lang__item .ept-menu-flag {
 	display: block;
 	flex: none;
-	width: 20px;
-	height: 14px;
+	width: 22px;
+	height: 16px;
 	max-width: none;
 	margin: 0;
 	object-fit: cover;
-	border-radius: 2px;
-	box-shadow: 0 0 0 1px rgba(0, 0, 0, .12);
+	border-radius: 3px;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, .14);
 }
 
-.ept-menu-lang .ept-menu-lang__code {
-	letter-spacing: .04em;
+.ept-menu-lang__code {
+	font-size: .92em;
+	letter-spacing: .05em;
 }
 
-.ept-menu-lang .ept-menu-lang__private,
-.ept-menu-lang__item .ept-menu-lang__private {
-	font-size: .8em;
-	opacity: .65;
+.ept-menu-lang__private {
+	opacity: .6;
 }
 
-.ept-menu-lang--flat:not(.ept-menu-lang--current) > a,
-.ept-menu-lang--flat:not(.ept-menu-lang--current) > div > a {
-	opacity: .75;
+/* No hover underlines / pointer effects of the menu under the flags. */
+li.ept-menu-lang > a::before,
+li.ept-menu-lang > a::after,
+li.ept-menu-lang > .hfe-has-submenu-container > a::before,
+li.ept-menu-lang > .hfe-has-submenu-container > a::after {
+	display: none !important;
 }
 
-.ept-menu-lang--flat > a:hover,
-.ept-menu-lang--flat > div > a:hover {
+/* Flags only: a little lift on hover. */
+li.ept-menu-lang--text-flag > a .ept-menu-flag,
+li.ept-menu-lang--text-flag > .hfe-has-submenu-container > a .ept-menu-flag {
+	transition: transform .15s;
+}
+
+li.ept-menu-lang--text-flag > a:hover .ept-menu-flag,
+li.ept-menu-lang--text-flag > .hfe-has-submenu-container > a:hover .ept-menu-flag {
+	transform: translateY(-1px);
+}
+
+/* In a row: the other languages slightly faded, the current one outlined. */
+li.ept-menu-lang--flat:not(.ept-menu-lang--current) > a {
+	opacity: .7;
+	transition: opacity .15s;
+}
+
+li.ept-menu-lang--flat:not(.ept-menu-lang--current) > a:hover {
 	opacity: 1;
+}
+
+li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
+	outline: 1.5px solid currentColor;
+	outline-offset: 2px;
+}
+
+/* Desktop (UAE menu shown horizontally): the open languages are a small card of their own,
+ * whatever the colours of the menu's sub-menus. In the hamburger menu (mobile) they keep
+ * the look of the other entries. */
+@media (min-width: 768px) {
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu {
+	left: auto !important;
+	right: 0 !important;
+	min-width: 0 !important;
+	width: max-content !important;
+	margin-top: 6px !important;
+	padding: 6px !important;
+	background: #fff !important;
+	border: 1px solid rgba(0, 0, 0, .08) !important;
+	border-radius: 10px !important;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06) !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu > li {
+	background: transparent !important;
+	border: 0 !important;
+	margin: 0 !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+	display: flex !important;
+	padding: 8px 12px !important;
+	border: 0 !important;
+	border-radius: 6px !important;
+	background: transparent !important;
+	color: #1f2a24 !important;
+	font-size: 15px !important;
+	line-height: 1.2 !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
+.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
+	background: #f1f4f2 !important;
+	color: #1f2a24 !important;
+}
+}
+@media (min-width: 1025px) {
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu {
+	left: auto !important;
+	right: 0 !important;
+	min-width: 0 !important;
+	width: max-content !important;
+	margin-top: 6px !important;
+	padding: 6px !important;
+	background: #fff !important;
+	border: 1px solid rgba(0, 0, 0, .08) !important;
+	border-radius: 10px !important;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06) !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu > li {
+	background: transparent !important;
+	border: 0 !important;
+	margin: 0 !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+	display: flex !important;
+	padding: 8px 12px !important;
+	border: 0 !important;
+	border-radius: 6px !important;
+	background: transparent !important;
+	color: #1f2a24 !important;
+	font-size: 15px !important;
+	line-height: 1.2 !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
+.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
+	background: #f1f4f2 !important;
+	color: #1f2a24 !important;
+}
+}
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu {
+	left: auto !important;
+	right: 0 !important;
+	min-width: 0 !important;
+	width: max-content !important;
+	margin-top: 6px !important;
+	padding: 6px !important;
+	background: #fff !important;
+	border: 1px solid rgba(0, 0, 0, .08) !important;
+	border-radius: 10px !important;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .06) !important;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu > li {
+	background: transparent !important;
+	border: 0 !important;
+	margin: 0 !important;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+	display: flex !important;
+	padding: 8px 12px !important;
+	border: 0 !important;
+	border-radius: 6px !important;
+	background: transparent !important;
+	color: #1f2a24 !important;
+	font-size: 15px !important;
+	line-height: 1.2 !important;
+}
+
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
+.hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
+	background: #f1f4f2 !important;
+	color: #1f2a24 !important;
 }

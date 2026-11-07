@@ -182,3 +182,6 @@
 .ept-serp__desc { color: #4d5156; font-size: 14px; line-height: 1.58; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ept-alts img { border-radius: 2px; display: block; }
 @media (max-width: 960px) { .ept-seo-grid { grid-template-columns: 1fr; } }
+
+.ept-refs-table td { vertical-align: top; }
+.ept-refs-table select { max-width: 100%; }

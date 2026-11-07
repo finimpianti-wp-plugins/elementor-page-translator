@@ -119,7 +119,7 @@ final class Translation_Screen {
 	 */
 	public static function render(): void {
 		list( $post_id, $lang ) = self::params();
-		if ( ! current_user_can( 'edit_page', $post_id ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( esc_html__( 'Non hai i permessi per tradurre questa pagina.', 'ept' ), 403 );
 		}
 		$check = Translation_Service::validate( $post_id, $lang );

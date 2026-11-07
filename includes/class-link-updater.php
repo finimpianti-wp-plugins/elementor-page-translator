@@ -23,6 +23,7 @@ final class Link_Updater {
 	 */
 	public static function init(): void {
 		add_action( 'post_updated', array( self::class, 'on_update' ), 20, 3 );
+		add_action( 'transition_post_status', array( self::class, 'on_status' ), 20, 3 );
 	}
 
 	/**
@@ -43,6 +44,24 @@ final class Link_Updater {
 			return; // Italian pages: handled in F8 (slug change proposal).
 		}
 		self::update_links_to( (int) $post_id );
+	}
+
+	/**
+	 * The home of a language (its root page) is published or unpublished: links to it
+	 * (UAE logo, breadcrumbs) cached by Elementor in that language must be rebuilt.
+	 *
+	 * @param string  $new_status New status.
+	 * @param string  $old_status Old status.
+	 * @param WP_Post $post       Post.
+	 */
+	public static function on_status( $new_status, $old_status, $post ): void {
+		if ( $new_status === $old_status || ! $post instanceof WP_Post || 'page' !== $post->post_type ) {
+			return;
+		}
+		$lang = Root_Pages::root_language( $post->ID );
+		if ( null !== $lang ) {
+			Content::flush_element_cache( Content::posts_of_language( $lang ) );
+		}
 	}
 
 	/**
@@ -84,6 +103,12 @@ final class Link_Updater {
 					$queue[] = $child;
 				}
 			}
+		}
+
+		// Sub-pages show this page in their breadcrumbs: rebuild their cached widgets.
+		Content::flush_element_cache( $pages );
+		if ( null !== Root_Pages::root_language( $page_id ) ) {
+			Content::flush_element_cache( Content::posts_of_language( $lang ) );
 		}
 
 		$targets = array();

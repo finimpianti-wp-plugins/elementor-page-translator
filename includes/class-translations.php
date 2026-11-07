@@ -206,7 +206,7 @@ final class Translations {
 	 * @param string $lang      Language.
 	 */
 	public static function strings_hash( int $source_id, string $lang ): string {
-		return sha1( (string) wp_json_encode( array( self::strings( $source_id, $lang ), self::page_fields( $source_id, $lang ), Links::choices( $source_id, $lang ), get_post_meta( $source_id, '_ept_seo_' . $lang, true ) ) ) );
+		return sha1( (string) wp_json_encode( array( self::strings( $source_id, $lang ), self::page_fields( $source_id, $lang ), Links::choices( $source_id, $lang ), get_post_meta( $source_id, '_ept_seo_' . $lang, true ), Refs::choices( $source_id, $lang ) ) ) );
 	}
 
 	/**

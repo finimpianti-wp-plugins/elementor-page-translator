@@ -72,4 +72,41 @@ final class Content {
 		}
 		clean_post_cache( $post_id );
 	}
+
+	/**
+	 * Drop Elementor's element cache (rendered HTML of non-dynamic widgets such as the UAE
+	 * site logo and breadcrumbs) of some posts, so it is rebuilt in the right context.
+	 *
+	 * @param list<int> $post_ids Post IDs.
+	 */
+	public static function flush_element_cache( array $post_ids ): void {
+		foreach ( array_unique( array_map( 'intval', $post_ids ) ) as $id ) {
+			if ( $id > 0 ) {
+				delete_post_meta( $id, '_elementor_element_cache' );
+			}
+		}
+	}
+
+	/**
+	 * IDs of all posts (pages and UAE templates) of a language.
+	 *
+	 * @param string $lang Language code.
+	 * @return list<int>
+	 */
+	public static function posts_of_language( string $lang ): array {
+		return array_map(
+			'intval',
+			get_posts(
+				array(
+					'post_type'        => array( 'page', Uae_Templates::POST_TYPE ),
+					'post_status'      => 'any',
+					'fields'           => 'ids',
+					'posts_per_page'   => -1,
+					'suppress_filters' => true,
+					'meta_key'         => Translations::META_LANG, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					'meta_value'       => $lang, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				)
+			)
+		);
+	}
 }

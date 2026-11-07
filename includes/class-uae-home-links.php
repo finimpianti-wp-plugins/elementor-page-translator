@@ -1,12 +1,13 @@
 <?php
 /**
- * UAE 2.9.6 breadcrumbs widget (hfe-breadcrumbs-widget) on translated pages.
+ * UAE 2.9.6 widgets linking to the home page, on pages in another language.
  *
- * Verified on the installed plugin: the first crumb links to home_url() and the next
- * crumbs are the page ancestors (on a translated page the first ancestor is the root
- * page of the language, i.e. its home). While this widget renders on a page in another
- * language, home_url('/') points to the home of that language, and a crumb repeating
- * the previous link is removed.
+ * Verified on the installed plugin: the breadcrumbs (first crumb), the site logo
+ * (link source "default") and the site title link to home_url() / get_home_url().
+ * While one of these widgets renders on a page in another language, home_url('/')
+ * points to the home of that language. In the breadcrumbs, the next crumbs are the page
+ * ancestors (the first one is the root page of the language): a crumb repeating the
+ * previous link is removed.
  *
  * @package EPT
  */
@@ -18,9 +19,14 @@ defined( 'ABSPATH' ) || exit;
 /**
  * UAE breadcrumbs.
  */
-final class Uae_Breadcrumbs {
+final class Uae_Home_Links {
 
 	public const WIDGET = 'hfe-breadcrumbs-widget';
+
+	/**
+	 * Widgets whose home link follows the language.
+	 */
+	public const WIDGETS = array( 'hfe-breadcrumbs-widget', 'site-logo', 'hfe-site-title' );
 
 	/**
 	 * Hooks.
@@ -36,8 +42,8 @@ final class Uae_Breadcrumbs {
 	 *
 	 * @param mixed $widget Widget.
 	 */
-	private static function applies( $widget ): bool {
-		return is_object( $widget ) && method_exists( $widget, 'get_name' ) && self::WIDGET === $widget->get_name()
+	private static function applies( $widget, array $names = self::WIDGETS ): bool {
+		return is_object( $widget ) && method_exists( $widget, 'get_name' ) && in_array( $widget->get_name(), $names, true )
 			&& Languages::default_code() !== Current_Language::code();
 	}
 
@@ -87,7 +93,7 @@ final class Uae_Breadcrumbs {
 	 * @return string
 	 */
 	public static function dedupe( $content, $widget ) {
-		if ( ! self::applies( $widget ) || ! preg_match_all( '#<li class="hfe-breadcrumbs-(item|separator)[^"]*">.*?</li>#s', (string) $content, $m, PREG_OFFSET_CAPTURE ) ) {
+		if ( ! self::applies( $widget, array( self::WIDGET ) ) || ! preg_match_all( '#<li class="hfe-breadcrumbs-(item|separator)[^"]*">.*?</li>#s', (string) $content, $m, PREG_OFFSET_CAPTURE ) ) {
 			return $content;
 		}
 		$parts   = array();

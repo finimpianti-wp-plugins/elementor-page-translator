@@ -65,7 +65,7 @@ final class Translation_Service {
 	 */
 	public static function validate( int $source_id, string $lang ) {
 		$post = get_post( $source_id );
-		if ( ! $post instanceof WP_Post || 'page' !== $post->post_type || 'trash' === $post->post_status ) {
+		if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, array( 'page', Uae_Templates::POST_TYPE ), true ) || 'trash' === $post->post_status ) {
 			return new WP_Error( 'ept_not_found', __( 'Pagina non trovata.', 'ept' ), array( 'status' => 404 ) );
 		}
 		if ( ! Translations::is_source( $source_id ) ) {
@@ -99,6 +99,16 @@ final class Translation_Service {
 	 * @return array{ok: bool, id: int, title: string, url: string, message: string, needs_choice: bool}
 	 */
 	public static function target_parent( WP_Post $source, string $lang, string $parent_mode = '' ): array {
+		if ( Uae_Templates::POST_TYPE === $source->post_type ) {
+			return array(
+				'ok'           => true,
+				'id'           => 0,
+				'title'        => '',
+				'url'          => '',
+				'message'      => '',
+				'needs_choice' => false,
+			);
+		}
 		$root_id = (int) ( Languages::get( $lang )['root_page_id'] ?? 0 );
 		$root    = array(
 			'ok'           => $root_id > 0,
@@ -287,7 +297,11 @@ final class Translation_Service {
 			'strings'        => $rows,
 			'links'          => Links::screen_rows( $source->ID, $lang, Content::elements( $source->ID ), $extracted['strings'] ),
 			'relink'         => self::relink_candidates( $source->ID, $lang ),
-			'seo'            => Seo::screen_data( $source, $lang ),
+			'seo'            => 'page' === $source->post_type ? Seo::screen_data( $source, $lang ) : null,
+			'kind'           => 'page' === $source->post_type ? 'page' : 'template',
+			'refs'           => Refs::screen_rows( $source->ID, $lang, Content::elements( $source->ID ) ),
+			'menus'          => Refs::menus(),
+			'forms'          => Refs::form_suggestions(),
 			'progress'       => array(
 				'done'  => $done,
 				'total' => $total,
@@ -438,6 +452,9 @@ final class Translation_Service {
 		if ( isset( $input['links'] ) && is_array( $input['links'] ) ) {
 			Links::save_choices( $source->ID, $lang, $input['links'] );
 		}
+		if ( isset( $input['refs'] ) && is_array( $input['refs'] ) ) {
+			Refs::save_choices( $source->ID, $lang, $input['refs'] );
+		}
 		if ( isset( $input['seo'] ) && is_array( $input['seo'] ) ) {
 			Seo::save_fields( $source->ID, $lang, $input['seo'] );
 		}
@@ -566,7 +583,7 @@ final class Translation_Service {
 		}
 
 		$links   = Links::final_values( $source->ID, $lang, $elements );
-		$rebuilt = Content::rebuilder()->apply( $elements, $texts, $links['values'] );
+		$rebuilt = Content::rebuilder()->apply( $elements, $texts, $links['values'], Refs::final_values( $source->ID, $lang, $elements ) );
 
 		// Create or update the WordPress page.
 		$target_id   = self::target_id( $source->ID, $lang );
@@ -578,10 +595,10 @@ final class Translation_Service {
 		$slug  = $is_home ? (string) Languages::get( $lang )['prefix'] : sanitize_title( '' !== (string) ( $fields['slug'] ?? '' ) ? (string) $fields['slug'] : $title );
 
 		$postarr = array(
-			'post_type'      => 'page',
+			'post_type'      => $source->post_type,
 			'post_title'     => $title,
 			'post_name'      => $slug,
-			'post_parent'    => $is_home ? 0 : (int) $parent['id'],
+			'post_parent'    => $is_home || Uae_Templates::POST_TYPE === $source->post_type ? 0 : (int) $parent['id'],
 			'menu_order'     => $source->menu_order,
 			'comment_status' => $source->comment_status,
 			'ping_status'    => $source->ping_status,
@@ -618,6 +635,10 @@ final class Translation_Service {
 
 		Translations::link( $source->ID, $lang, $target_id );
 		self::copy_page_meta( $source->ID, $target_id );
+		if ( Uae_Templates::POST_TYPE === $source->post_type ) {
+			update_post_meta( $target_id, 'ehf_template_type', (string) get_post_meta( $source->ID, 'ehf_template_type', true ) );
+			Uae_Templates::clear_rules( $target_id ); // UAE never picks a translation by itself.
+		}
 
 		// Save through Elementor's document API: same sanitisation as the editor, CSS regenerated.
 		$settings = get_post_meta( $source->ID, '_elementor_page_settings', true );
@@ -647,7 +668,9 @@ final class Translation_Service {
 			);
 		}
 		Memory::store( $lang, $memory, $source->ID );
-		Seo::write_plugin_fields( $source->ID, $target_id, $lang );
+		if ( 'page' === $source->post_type ) {
+			Seo::write_plugin_fields( $source->ID, $target_id, $lang );
+		}
 		Links::write_index( $target_id, $lang, $links['index'] );
 		if ( $missing > 0 ) {
 			update_post_meta( $target_id, Translations::META_INCOMPLETE, $missing );

@@ -26,7 +26,8 @@ final class Plugin {
 		Link_Updater::init();
 		Current_Language::init();
 		Switcher::init();
-		Uae_Breadcrumbs::init();
+		Uae_Home_Links::init();
+		Uae_Templates::init();
 		Seo::init();
 
 		if ( is_admin() ) {

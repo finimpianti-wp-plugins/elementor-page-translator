@@ -214,11 +214,11 @@ final class Translation_Controller {
 	 */
 	public static function can_translate( WP_REST_Request $request ) {
 		$id = (int) $request['id'];
-		if ( ! current_user_can( 'edit_pages' ) || ! current_user_can( 'edit_page', $id ) ) {
+		if ( ! current_user_can( 'edit_pages' ) || ! current_user_can( 'edit_post', $id ) ) {
 			return new WP_Error( 'rest_forbidden', __( 'Non hai i permessi per tradurre questa pagina.', 'ept' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		$existing = Translations::get_id( $id, (string) $request['lang'] );
-		if ( null !== $existing && ! current_user_can( 'edit_page', $existing ) ) {
+		if ( null !== $existing && ! current_user_can( 'edit_post', $existing ) ) {
 			return new WP_Error( 'rest_forbidden', __( 'Non hai i permessi per modificare la pagina tradotta.', 'ept' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		return true;

@@ -26,6 +26,7 @@
 	const rowState = {}; // key => { t, s, ok }
 	const linkState = {}; // key => { mode: translate|keep|manual, url }
 	let seoState = { title: '', description: '', alts: {} };
+	const refState = {}; // key => value (menu slug / ID, shortcode)
 
 	/* ------------------------------------------------------------------ */
 	/* Helpers                                                              */
@@ -146,10 +147,15 @@
 		( data.links || [] ).forEach( ( link ) => {
 			linkState[ link.key ] = { mode: link.mode, url: link.manual };
 		} );
-		seoState = { title: data.seo.title, description: data.seo.description, alts: {} };
-		data.seo.images.forEach( ( image ) => {
-			seoState.alts[ image.id ] = image.alt;
+		( data.refs || [] ).forEach( ( ref ) => {
+			refState[ ref.key ] = ref.value;
 		} );
+		if ( data.seo ) {
+			seoState = { title: data.seo.title, description: data.seo.description, alts: {} };
+			data.seo.images.forEach( ( image ) => {
+				seoState.alts[ image.id ] = image.alt;
+			} );
+		}
 		slugTouched = data.page.slug !== '';
 		allSame = false;
 		bulkBackup = null;
@@ -164,7 +170,8 @@
 			renderToolbar(),
 			renderStrings(),
 			renderLinks(),
-			renderSeo(),
+			renderRefs(),
+			data.seo ? renderSeo() : null,
 			renderFooter()
 		].filter( Boolean ) );
 		updateProgress();
@@ -213,11 +220,14 @@
 			placeholder: data.source.title,
 			onInput: ( event ) => {
 				page.title = event.target.value;
-				if ( ! slugTouched && ! data.source.is_home ) {
-					page.slug = slugify( page.title );
-					document.getElementById( 'ept-slug' ).value = page.slug;
+				const slugField = document.getElementById( 'ept-slug' );
+				if ( slugField ) {
+					if ( ! slugTouched && ! data.source.is_home ) {
+						page.slug = slugify( page.title );
+						slugField.value = page.slug;
+					}
+					slugField.placeholder = slugify( page.title || data.source.title );
 				}
-				document.getElementById( 'ept-slug' ).placeholder = slugify( page.title || data.source.title );
 				updateUrl();
 				setDirty( true );
 			},
@@ -238,7 +248,9 @@
 				setDirty( true );
 			},
 		} );
-		grid.appendChild( field( 'ept-slug', __( 'Slug', 'ept' ), slug, data.source.is_home ? __( 'La home della lingua è la pagina radice: lo slug è il prefisso.', 'ept' ) : data.source.slug ) );
+		if ( data.kind === 'page' ) {
+			grid.appendChild( field( 'ept-slug', __( 'Slug', 'ept' ), slug, data.source.is_home ? __( 'La home della lingua è la pagina radice: lo slug è il prefisso.', 'ept' ) : data.source.slug ) );
+		}
 
 		// Parent and URL preview.
 		const parentBox = el( 'div', { className: 'ept-parent' } );
@@ -263,11 +275,15 @@
 				] )
 			);
 		}
-		grid.appendChild( field( null, __( 'Genitore', 'ept' ), parentBox ) );
-		grid.appendChild( field( null, __( 'Indirizzo', 'ept' ), el( 'span', {}, [
+		if ( data.kind === 'page' ) {
+			grid.appendChild( field( null, __( 'Genitore', 'ept' ), parentBox ) );
+		} else {
+			grid.appendChild( field( null, __( 'Template UAE', 'ept' ), el( 'span', { className: 'description', text: __( 'Header e footer tradotti non hanno regole di visualizzazione: vengono mostrati al posto dell\'originale sulle pagine di questa lingua (se pubblicati).', 'ept' ) } ) ) );
+		}
+		[ data.kind !== 'page' ? null : field( null, __( 'Indirizzo', 'ept' ), el( 'span', {}, [
 			el( 'code', { id: 'ept-url' } ),
 			el( 'span', { id: 'ept-url-note', className: 'description ept-warning', hidden: true, text: ' ' + sprintf( __( 'I permalink del sito sono disattivati (Impostazioni → Permalink: "Semplice"): gli indirizzi sono del tipo ?page_id=. Con i permalink attivi la pagina sarà sotto /%s/.', 'ept' ), data.lang.prefix ) } ),
-		] ) ) );
+		] ) ) ].filter( Boolean ).forEach( ( node ) => grid.appendChild( node ) );
 
 		// Status of the translated page: chosen at creation and changeable at every update.
 		const status = el( 'select', {
@@ -390,6 +406,9 @@
 
 	function seoToTranslate() {
 		const out = [];
+		if ( ! data.seo ) {
+			return out;
+		}
 		if ( ! seoState.title && data.seo.originals.title ) {
 			out.push( { key: '__seo_title', text: data.seo.originals.title } );
 		}
@@ -1009,6 +1028,75 @@
 		] );
 	}
 
+	function renderRefs() {
+		const refs = data.refs || [];
+		if ( ! refs.length ) {
+			return null;
+		}
+		const wrap = el( 'div', { className: 'ept-refs' } );
+		wrap.appendChild( el( 'p', { className: 'description', text: __( 'Menu e shortcode non si traducono: si sceglie la versione da usare in questa lingua (per esempio il menu "EN" creato in Aspetto → Menu, o il form tradotto creato in Forminator). Le scelte valgono anche per gli aggiornamenti successivi.', 'ept' ) } ) );
+		const listId = 'ept-forms-list';
+		if ( ( data.forms || [] ).length ) {
+			const list = el( 'datalist', { id: listId } );
+			data.forms.forEach( ( form ) => list.appendChild( el( 'option', { value: form.shortcode, text: form.name } ) ) );
+			wrap.appendChild( list );
+		}
+		const table = el( 'table', { className: 'widefat striped ept-refs-table' } );
+		table.appendChild( el( 'thead', {}, [ el( 'tr', {}, [
+			el( 'th', { scope: 'col', text: __( 'Dove', 'ept' ) } ),
+			el( 'th', { scope: 'col', text: __( 'Originale', 'ept' ) } ),
+			el( 'th', { scope: 'col', text: sprintf( __( 'Da usare in %s', 'ept' ), data.lang.name ) } ),
+		] ) ] ) );
+		const body = el( 'tbody' );
+		refs.forEach( ( ref ) => {
+			let control;
+			if ( ref.type === 'menu_slug' || ref.type === 'menu_id' ) {
+				const menuKey = ref.type === 'menu_id' ? 'id' : 'slug';
+				control = el( 'select', {
+					'aria-label': sprintf( __( 'Menu da usare in %s', 'ept' ), data.lang.name ),
+					onChange: ( event ) => {
+						refState[ ref.key ] = event.target.value;
+						setDirty( true );
+					},
+				} );
+				data.menus.forEach( ( menu ) => control.appendChild( el( 'option', { value: String( menu[ menuKey ] ), selected: String( menu[ menuKey ] ) === refState[ ref.key ], text: menu.name + ( String( menu[ menuKey ] ) === ref.original ? ' ' + __( '(originale)', 'ept' ) : '' ) } ) ) );
+			} else {
+				control = el( 'input', {
+					type: 'text',
+					className: 'large-text ept-code',
+					value: refState[ ref.key ],
+					list: ref.name === 'forminator_form' && ( data.forms || [] ).length ? listId : null,
+					'aria-label': sprintf( __( 'Shortcode da usare in %s', 'ept' ), data.lang.name ),
+					onInput: ( event ) => {
+						refState[ ref.key ] = event.target.value;
+						setDirty( true );
+					},
+				} );
+			}
+			const notes = el( 'div', {} );
+			if ( ref.proposed ) {
+				notes.appendChild( el( 'span', { className: 'ept-tag ept-tag--proposal', text: __( 'Menu proposto: controlla e salva', 'ept' ) } ) );
+			}
+			if ( ref.changed ) {
+				notes.appendChild( el( 'p', { className: 'ept-warning', text: __( 'L\'originale è cambiato: la scelta precedente non vale più.', 'ept' ) } ) );
+			}
+			if ( ref.name === 'forminator_form' ) {
+				notes.appendChild( el( 'p', { className: 'description', text: __( 'Duplica il form in Forminator, traducilo (campi, messaggi, email) e inserisci qui il suo shortcode.', 'ept' ) } ) );
+			}
+			const where = ref.type === 'menu_slug' || ref.type === 'menu_id' ? __( 'Menu', 'ept' ) : ( ref.type === 'shortcode_inline' ? __( 'Shortcode nel testo', 'ept' ) : __( 'Shortcode', 'ept' ) );
+			body.appendChild( el( 'tr', { 'data-ref': ref.key }, [
+				el( 'td', {}, [ el( 'strong', { text: where } ), el( 'div', { className: 'description', text: ref.widget } ) ] ),
+				el( 'td', {}, [ el( 'code', { text: ref.original } ) ] ),
+				el( 'td', {}, [ control, notes ] ),
+			] ) );
+		} );
+		table.appendChild( body );
+		wrap.appendChild( table );
+		const open = refs.some( ( ref ) => ref.proposed || ref.changed );
+		const changedCount = refs.filter( ( ref ) => refState[ ref.key ] !== ref.original ).length;
+		return panel( 'refs', 'h2', __( 'Riferimenti (menu e shortcode)', 'ept' ), sprintf( __( '%1$d · %2$d personalizzati per questa lingua', 'ept' ), refs.length, changedCount ), open, [ wrap ] );
+	}
+
 	function counter( value, max ) {
 		const length = String( value ).length;
 		return el( 'span', { className: 'ept-counter' + ( length > max ? ' ept-counter--over' : '' ), text: sprintf( __( '%1$d / %2$d caratteri', 'ept' ), length, max ) } );
@@ -1156,7 +1244,7 @@
 		( data.links || [] ).forEach( ( link ) => {
 			links[ link.key ] = linkState[ link.key ];
 		} );
-		return { page: data.page, strings, links, seo: seoState, confirm: !! confirm };
+		return { page: data.page, strings, links, refs: refState, seo: data.seo ? seoState : undefined, confirm: !! confirm };
 	}
 
 	function setBusy( value ) {

@@ -30,6 +30,12 @@ final class Pages_List {
 		add_filter( 'page_row_actions', array( self::class, 'row_actions' ), 20, 2 );
 		add_filter( 'manage_pages_columns', array( self::class, 'columns' ) );
 		add_action( 'manage_pages_custom_column', array( self::class, 'column' ), 10, 2 );
+		// UAE header / footer templates: same tools.
+		add_filter( 'post_row_actions', array( self::class, 'row_actions' ), 20, 2 );
+		add_filter( 'manage_elementor-hf_posts_columns', array( self::class, 'columns' ) );
+		add_action( 'manage_elementor-hf_posts_custom_column', array( self::class, 'column' ), 10, 2 );
+		add_filter( 'bulk_actions-edit-elementor-hf', array( self::class, 'bulk_actions' ) );
+		add_filter( 'handle_bulk_actions-edit-elementor-hf', array( self::class, 'handle_bulk_sync' ), 10, 3 );
 		add_filter( 'display_post_states', array( self::class, 'post_states' ), 20, 2 );
 		add_action( 'restrict_manage_posts', array( self::class, 'language_filter' ) );
 		add_action( 'pre_get_posts', array( self::class, 'apply_language_filter' ) );
@@ -45,7 +51,7 @@ final class Pages_List {
 	 * @param WP_Post $post Post.
 	 */
 	public static function is_translatable( WP_Post $post ): bool {
-		return 'page' === $post->post_type
+		return in_array( $post->post_type, array( 'page', \EPT\Uae_Templates::POST_TYPE ), true )
 			&& 'trash' !== $post->post_status
 			&& Translations::is_source( $post->ID )
 			&& null === Root_Pages::root_language( $post->ID )
@@ -60,7 +66,7 @@ final class Pages_List {
 	 * @return array<string,string>
 	 */
 	public static function row_actions( $actions, $post ) {
-		if ( ! $post instanceof WP_Post || ! self::is_translatable( $post ) || ! current_user_can( 'edit_page', $post->ID ) || ! Languages::active() ) {
+		if ( ! $post instanceof WP_Post || ! self::is_translatable( $post ) || ! current_user_can( 'edit_post', $post->ID ) || ! Languages::active() ) {
 			return $actions;
 		}
 		$first                    = (string) array_key_first( Languages::active() );
@@ -170,12 +176,12 @@ final class Pages_List {
 		);
 		foreach ( array_map( 'intval', (array) $post_ids ) as $post_id ) {
 			$post = get_post( $post_id );
-			if ( ! $post instanceof WP_Post || ! self::is_translatable( $post ) || ! current_user_can( 'edit_page', $post_id ) ) {
+			if ( ! $post instanceof WP_Post || ! self::is_translatable( $post ) || ! current_user_can( 'edit_post', $post_id ) ) {
 				continue;
 			}
 			foreach ( array_keys( Languages::active() ) as $code ) {
 				$target = Translations::get_id( $post_id, (string) $code );
-				if ( null === $target || ! current_user_can( 'edit_page', $target ) ) {
+				if ( null === $target || ! current_user_can( 'edit_post', $target ) ) {
 					continue;
 				}
 				$result = \EPT\Translation_Service::quick_sync( $post, (string) $code );
@@ -270,7 +276,7 @@ final class Pages_List {
 	 * @param string $post_type Post type.
 	 */
 	public static function language_filter( $post_type ): void {
-		if ( 'page' !== $post_type || ! Languages::all() ) {
+		if ( ! in_array( $post_type, array( 'page', \EPT\Uae_Templates::POST_TYPE ), true ) || ! Languages::all() ) {
 			return;
 		}
 		$current = isset( $_GET['ept_lang'] ) ? sanitize_key( wp_unslash( $_GET['ept_lang'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list filter.
@@ -291,7 +297,7 @@ final class Pages_List {
 	 * @param WP_Query $query Query.
 	 */
 	public static function apply_language_filter( $query ): void {
-		if ( ! is_admin() || ! $query->is_main_query() || 'page' !== $query->get( 'post_type' ) || empty( $_GET['ept_lang'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list filter.
+		if ( ! is_admin() || ! $query->is_main_query() || ! in_array( $query->get( 'post_type' ), array( 'page', \EPT\Uae_Templates::POST_TYPE ), true ) || empty( $_GET['ept_lang'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list filter.
 			return;
 		}
 		$lang = sanitize_key( wp_unslash( $_GET['ept_lang'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list filter.
@@ -315,7 +321,7 @@ final class Pages_List {
 	 */
 	public static function styles(): void {
 		$screen = get_current_screen();
-		if ( ! $screen || 'edit-page' !== $screen->id ) {
+		if ( ! $screen || ! in_array( $screen->id, array( 'edit-page', 'edit-elementor-hf' ), true ) ) {
 			return;
 		}
 		echo '<style>

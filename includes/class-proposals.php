@@ -44,7 +44,7 @@ final class Proposals {
 	 * @param list<string> $keys          Row keys to propose; empty = every row without a saved translation.
 	 * @param bool         $skip_memory   Skip the memory ("Ripeti proposta" asks the service again).
 	 * @param bool         $include_title Also propose the page title.
-	 * @return array{proposals: array<string,array{html:string,plain:?string,source:string}>, title: ?string, error: ?string, sent: int}
+	 * @return array{proposals: array<string,array{html:string,plain:?string,source:string}>, title: ?string, seo: array<string,string>, error: ?string, sent: int}
 	 */
 	public static function propose( WP_Post $source, string $lang, array $keys = array(), bool $skip_memory = false, bool $include_title = false ): array {
 		$language = Languages::get( $lang );
@@ -108,10 +108,38 @@ final class Proposals {
 			}
 		}
 
+		// SEO fields still empty: meta title, meta description, image alt texts.
+		$titles     = array();
+		$out['seo'] = array();
+		if ( $include_title ) {
+			$seo       = Seo::fields( $source->ID, $lang );
+			$originals = Seo::originals( $source );
+			$extra     = array();
+			if ( '' === $seo['title'] && '' !== $originals['title'] ) {
+				$extra['__seo_title'] = $originals['title'];
+			}
+			if ( '' === $seo['description'] && '' !== $originals['description'] ) {
+				$extra['__seo_description'] = $originals['description'];
+			}
+			foreach ( Seo::image_ids( $source->ID ) as $attachment_id ) {
+				$alt = (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+				if ( '' !== trim( $alt ) && ! isset( $seo['alts'][ $attachment_id ] ) ) {
+					$extra[ '__alt_' . $attachment_id ] = $alt;
+				}
+			}
+			$memory = $skip_memory ? array() : Memory::suggestions( $lang, array_map( array( Extractor::class, 'hash' ), $extra ) );
+			foreach ( $extra as $key => $text ) {
+				if ( isset( $memory[ Extractor::hash( $text ) ] ) ) {
+					$out['seo'][ $key ] = $memory[ Extractor::hash( $text ) ];
+				} else {
+					$titles[ $key ] = $text;
+				}
+			}
+		}
+
 		// 3. DeepL.
 		$client = self::client();
-		$titles = array();
-		if ( $include_title && '' !== trim( $source->post_title ) ) {
+		if ( $include_title && '' !== trim( $source->post_title ) && '' === (string) ( Translations::page_fields( $source->ID, $lang )['title'] ?? '' ) ) {
 			$titles['__title'] = $source->post_title;
 		}
 		if ( ( $texts || $titles ) && null === $client ) {
@@ -144,6 +172,8 @@ final class Proposals {
 			foreach ( $result as $key => $translation ) {
 				if ( '__title' === $key ) {
 					$out['title'] = $translation;
+				} elseif ( str_starts_with( (string) $key, '__' ) ) {
+					$out['seo'][ $key ] = $translation;
 				} else {
 					$out['proposals'][ $key ] = self::proposal( $meta[ $key ], $translation, 'deepl' );
 				}

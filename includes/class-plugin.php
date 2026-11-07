@@ -27,6 +27,7 @@ final class Plugin {
 		Current_Language::init();
 		Switcher::init();
 		Uae_Breadcrumbs::init();
+		Seo::init();
 
 		if ( is_admin() ) {
 			Admin\Notices::init();
@@ -35,6 +36,7 @@ final class Plugin {
 			Admin\Pages_List::init();
 			Admin\Translation_Screen::init();
 			Admin\Editor_Notice::init();
+			Admin\Seo_Metabox::init();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

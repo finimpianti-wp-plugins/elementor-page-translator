@@ -170,3 +170,15 @@
 .ept-panel--h3 { margin: 8px 0 8px 16px; }
 .ept-panel--h3 > summary { border-bottom-color: #dcdcde; }
 .ept-panel > .ept-rows, .ept-panel > .ept-links { margin-top: 8px; }
+
+/* SEO panel. */
+.ept-seo-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.ept-seo-grid .ept-field { margin-top: 12px; }
+.ept-counter { font-size: 12px; color: #50575e; }
+.ept-counter--over { color: #b32d2e; font-weight: 600; }
+.ept-serp { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 16px; font-family: arial, sans-serif; max-width: 600px; }
+.ept-serp__url { color: #202124; font-size: 13px; word-break: break-all; }
+.ept-serp__title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ept-serp__desc { color: #4d5156; font-size: 14px; line-height: 1.58; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ept-alts img { border-radius: 2px; display: block; }
+@media (max-width: 960px) { .ept-seo-grid { grid-template-columns: 1fr; } }

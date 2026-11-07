@@ -151,13 +151,26 @@ final class Translation_Controller {
 		if ( null !== $result['title'] && '' === (string) ( \EPT\Translations::page_fields( $source->ID, $lang )['title'] ?? '' ) ) {
 			$draft['page'] = array( 'title' => $result['title'] );
 		}
-		if ( $strings || isset( $draft['page'] ) ) {
+		if ( ! empty( $result['seo'] ) ) {
+			$seo = array( 'alts' => array() );
+			foreach ( $result['seo'] as $key => $value ) {
+				if ( '__seo_title' === $key ) {
+					$seo['title'] = $value;
+				} elseif ( '__seo_description' === $key ) {
+					$seo['description'] = $value;
+				} elseif ( str_starts_with( (string) $key, '__alt_' ) ) {
+					$seo['alts'][ (int) substr( (string) $key, 6 ) ] = $value;
+				}
+			}
+			$draft['seo'] = $seo;
+		}
+		if ( $strings || isset( $draft['page'] ) || isset( $draft['seo'] ) ) {
 			Translation_Service::save_draft( $source, $lang, $draft );
 		}
 
 		return rest_ensure_response(
 			array(
-				'count'  => count( $result['proposals'] ),
+				'count'  => count( $result['proposals'] ) + count( $result['seo'] ?? array() ),
 				'title'  => $result['title'],
 				'error'  => $result['error'],
 				'sent'   => $result['sent'],

@@ -287,6 +287,7 @@ final class Translation_Service {
 			'strings'        => $rows,
 			'links'          => Links::screen_rows( $source->ID, $lang, Content::elements( $source->ID ), $extracted['strings'] ),
 			'relink'         => self::relink_candidates( $source->ID, $lang ),
+			'seo'            => Seo::screen_data( $source, $lang ),
 			'progress'       => array(
 				'done'  => $done,
 				'total' => $total,
@@ -436,6 +437,9 @@ final class Translation_Service {
 
 		if ( isset( $input['links'] ) && is_array( $input['links'] ) ) {
 			Links::save_choices( $source->ID, $lang, $input['links'] );
+		}
+		if ( isset( $input['seo'] ) && is_array( $input['seo'] ) ) {
+			Seo::save_fields( $source->ID, $lang, $input['seo'] );
 		}
 
 		$page   = isset( $input['page'] ) && is_array( $input['page'] ) ? $input['page'] : array();
@@ -635,7 +639,15 @@ final class Translation_Service {
 		update_post_meta( $target_id, Translations::META_OUTPUT_HASH, Translations::data_hash( $target_id ) );
 		update_post_meta( $target_id, Translations::META_STRINGS_HASH, Translations::strings_hash( $source->ID, $lang ) );
 		update_post_meta( $target_id, Translations::META_MISSING_KEYS, $missing_k );
+		$seo = Seo::fields( $source->ID, $lang );
+		foreach ( $seo['alts'] as $attachment_id => $alt ) {
+			$memory[] = array(
+				'text'        => (string) get_post_meta( (int) $attachment_id, '_wp_attachment_image_alt', true ),
+				'translation' => $alt,
+			);
+		}
 		Memory::store( $lang, $memory, $source->ID );
+		Seo::write_plugin_fields( $source->ID, $target_id, $lang );
 		Links::write_index( $target_id, $lang, $links['index'] );
 		if ( $missing > 0 ) {
 			update_post_meta( $target_id, Translations::META_INCOMPLETE, $missing );

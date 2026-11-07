@@ -25,6 +25,7 @@
 	let bulkBackup = null; // key => previous choice, while "all same as original" is checked
 	const rowState = {}; // key => { t, s, ok }
 	const linkState = {}; // key => { mode: translate|keep|manual, url }
+	let seoState = { title: '', description: '', alts: {} };
 
 	/* ------------------------------------------------------------------ */
 	/* Helpers                                                              */
@@ -145,6 +146,10 @@
 		( data.links || [] ).forEach( ( link ) => {
 			linkState[ link.key ] = { mode: link.mode, url: link.manual };
 		} );
+		seoState = { title: data.seo.title, description: data.seo.description, alts: {} };
+		data.seo.images.forEach( ( image ) => {
+			seoState.alts[ image.id ] = image.alt;
+		} );
 		slugTouched = data.page.slug !== '';
 		allSame = false;
 		bulkBackup = null;
@@ -159,6 +164,7 @@
 			renderToolbar(),
 			renderStrings(),
 			renderLinks(),
+			renderSeo(),
 			renderFooter()
 		].filter( Boolean ) );
 		updateProgress();
@@ -382,6 +388,22 @@
 		} );
 	}
 
+	function seoToTranslate() {
+		const out = [];
+		if ( ! seoState.title && data.seo.originals.title ) {
+			out.push( { key: '__seo_title', text: data.seo.originals.title } );
+		}
+		if ( ! seoState.description && data.seo.originals.description ) {
+			out.push( { key: '__seo_description', text: data.seo.originals.description } );
+		}
+		data.seo.images.forEach( ( image ) => {
+			if ( image.original && ! seoState.alts[ image.id ] ) {
+				out.push( { key: '__alt_' + image.id, text: image.original } );
+			}
+		} );
+		return out;
+	}
+
 	function googleLang( locale ) {
 		const parts = String( locale ).split( '_' );
 		if ( parts[ 0 ] === 'zh' ) {
@@ -401,6 +423,10 @@
 		rows.forEach( ( row ) => {
 			copyList.push( row.key );
 			blocks.push( '[' + copyList.length + ']\n' + ( rowState[ row.key ].simple ? row.simple.original : row.original ) );
+		} );
+		seoToTranslate().forEach( ( entry ) => {
+			copyList.push( entry.key );
+			blocks.push( '[' + copyList.length + ']\n' + entry.text );
 		} );
 		if ( ! blocks.length ) {
 			notice( 'info', __( 'Non ci sono testi da tradurre: tutti i campi sono già compilati.', 'ept' ) );
@@ -445,7 +471,7 @@
 	function applyPaste( text ) {
 		if ( ! copyList ) {
 			// Same rule as the copy: rebuilt after a reload (the list is deterministic).
-			copyList = ( data.page.title ? [] : [ '__title' ] ).concat( rowsToTranslate().map( ( row ) => row.key ) );
+			copyList = ( data.page.title ? [] : [ '__title' ] ).concat( rowsToTranslate().map( ( row ) => row.key ), seoToTranslate().map( ( entry ) => entry.key ) );
 		}
 		const parts = String( text ).split( /\[\s*(\d+)\s*\]/ );
 		const found = {};
@@ -466,6 +492,16 @@
 			}
 			if ( key === '__title' ) {
 				data.page.title = translation;
+				applied++;
+				return;
+			}
+			if ( key === '__seo_title' || key === '__seo_description' ) {
+				seoState[ key === '__seo_title' ? 'title' : 'description' ] = translation.replace( /\s*\n\s*/g, ' ' );
+				applied++;
+				return;
+			}
+			if ( key.startsWith( '__alt_' ) ) {
+				seoState.alts[ parseInt( key.slice( 6 ), 10 ) ] = translation.replace( /\s*\n\s*/g, ' ' );
 				applied++;
 				return;
 			}
@@ -521,7 +557,7 @@
 		setBusy( true );
 		notice( 'info', __( 'Richiesta delle proposte in corso…', 'ept' ) );
 		return before
-			.then( () => wp.apiFetch( { path: path( '/propose' ), method: 'POST', data: { keys, skip_memory: !! skipMemory, include_title: ! data.page.title } } ) )
+			.then( () => wp.apiFetch( { path: path( '/propose' ), method: 'POST', data: { keys, skip_memory: !! skipMemory, include_title: true } } ) )
 			.then( ( response ) => {
 				setBusy( false );
 				setData( response.screen );
@@ -973,6 +1009,93 @@
 		] );
 	}
 
+	function counter( value, max ) {
+		const length = String( value ).length;
+		return el( 'span', { className: 'ept-counter' + ( length > max ? ' ept-counter--over' : '' ), text: sprintf( __( '%1$d / %2$d caratteri', 'ept' ), length, max ) } );
+	}
+
+	function renderSeo() {
+		const seo = data.seo;
+		const wrap = el( 'div', { className: 'ept-seo' } );
+		const missing = ( seoState.title ? 0 : 1 ) + ( seoState.description ? 0 : 1 ) + seo.images.filter( ( image ) => image.original && ! seoState.alts[ image.id ] ).length;
+		const count = missing ? sprintf( _n( '%d campo da compilare', '%d campi da compilare', missing, 'ept' ), missing ) : __( 'completa', 'ept' );
+
+		if ( seo.plugin ) {
+			wrap.appendChild( el( 'p', { className: 'description', text: sprintf( __( 'È attivo %s: meta title e description vengono scritti nei suoi campi della pagina tradotta; title, description, canonical e Open Graph li stampa lui. Il plugin aggiunge gli hreflang.', 'ept' ), seo.plugin === 'yoast' ? 'Yoast SEO' : 'Rank Math' ) } ) );
+		}
+
+		const preview = el( 'div', { className: 'ept-serp', 'aria-label': __( 'Anteprima nei risultati di ricerca', 'ept' ) } );
+		const drawPreview = () => {
+			const url = document.getElementById( 'ept-url' );
+			preview.replaceChildren(
+				el( 'div', { className: 'ept-serp__url', text: url ? url.textContent : '' } ),
+				el( 'div', { className: 'ept-serp__title', text: seoState.title || ( ( data.page.title || data.source.title ) + ' - ' + seo.site_name ) } ),
+				el( 'div', { className: 'ept-serp__desc', text: seoState.description || __( '(nessuna description: il motore di ricerca sceglierà un estratto della pagina)', 'ept' ) } )
+			);
+		};
+
+		const titleCounter = el( 'span', {}, [ counter( seoState.title, seo.title_max ) ] );
+		const titleInput = el( 'input', {
+			type: 'text', id: 'ept-seo-title', className: 'large-text', value: seoState.title, placeholder: seo.originals.title,
+			onInput: ( event ) => {
+				seoState.title = event.target.value;
+				titleCounter.replaceChildren( counter( seoState.title, seo.title_max ) );
+				drawPreview();
+				setDirty( true );
+			},
+		} );
+		const descCounter = el( 'span', {}, [ counter( seoState.description, seo.desc_max ) ] );
+		const descInput = el( 'textarea', {
+			id: 'ept-seo-description', className: 'large-text', rows: 3, placeholder: seo.originals.description,
+			onInput: ( event ) => {
+				seoState.description = event.target.value;
+				descCounter.replaceChildren( counter( seoState.description, seo.desc_max ) );
+				drawPreview();
+				setDirty( true );
+			},
+		} );
+		descInput.value = seoState.description;
+
+		wrap.appendChild( el( 'div', { className: 'ept-seo-grid' }, [
+			el( 'div', {}, [
+				field( 'ept-seo-title', __( 'Meta title', 'ept' ), titleInput, sprintf( __( 'Originale: %s', 'ept' ), seo.originals.title ) ),
+				titleCounter,
+				field( 'ept-seo-description', __( 'Meta description', 'ept' ), descInput, seo.originals.description ? sprintf( __( 'Originale: %s', 'ept' ), seo.originals.description ) : __( 'La pagina italiana non ha una description.', 'ept' ) ),
+				descCounter,
+			] ),
+			preview,
+		] ) );
+		setTimeout( drawPreview, 0 );
+
+		if ( seo.images.length ) {
+			wrap.appendChild( el( 'h3', { text: __( 'Testi alternativi delle immagini', 'ept' ) } ) );
+			const table = el( 'table', { className: 'widefat striped ept-alts' } );
+			table.appendChild( el( 'thead', {}, [ el( 'tr', {}, [
+				el( 'th', { scope: 'col', text: __( 'Immagine', 'ept' ) } ),
+				el( 'th', { scope: 'col', text: __( 'Testo alternativo originale', 'ept' ) } ),
+				el( 'th', { scope: 'col', text: __( 'Traduzione', 'ept' ) } ),
+			] ) ] ) );
+			const body = el( 'tbody' );
+			seo.images.forEach( ( image ) => {
+				body.appendChild( el( 'tr', {}, [
+					el( 'td', {}, [ image.thumb ? el( 'img', { src: image.thumb, alt: '', width: 60, height: 60, loading: 'lazy' } ) : null, el( 'div', { className: 'description', text: image.file } ) ] ),
+					el( 'td', { text: image.original || __( '(vuoto nella libreria media)', 'ept' ) } ),
+					el( 'td', {}, [ el( 'input', {
+						type: 'text', className: 'large-text', value: seoState.alts[ image.id ] || '', disabled: ! image.original,
+						'aria-label': sprintf( __( 'Testo alternativo tradotto di %s', 'ept' ), image.file ),
+						onInput: ( event ) => {
+							seoState.alts[ image.id ] = event.target.value;
+							setDirty( true );
+						},
+					} ) ] ),
+				] ) );
+			} );
+			table.appendChild( body );
+			wrap.appendChild( table );
+		}
+		return panel( 'seo', 'h2', __( 'SEO', 'ept' ), count, missing > 0, [ wrap ] );
+	}
+
 	function renderRelink() {
 		const pages = data.relink || [];
 		if ( ! pages.length ) {
@@ -1033,7 +1156,7 @@
 		( data.links || [] ).forEach( ( link ) => {
 			links[ link.key ] = linkState[ link.key ];
 		} );
-		return { page: data.page, strings, links, confirm: !! confirm };
+		return { page: data.page, strings, links, seo: seoState, confirm: !! confirm };
 	}
 
 	function setBusy( value ) {

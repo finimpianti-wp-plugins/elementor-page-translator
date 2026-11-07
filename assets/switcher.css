@@ -366,10 +366,11 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown {
 	position: relative;
 	align-self: center;
+	margin-left: var(--ept-menu-extra, 0px) !important;
 }
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
-	padding: 8px var(--ept-menu-pad, 12px) !important;
+	padding: 8px var(--ept-menu-pad, 12px) 8px calc(var(--ept-menu-pad, 12px) / 2) !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-shadow: none !important;
@@ -429,7 +430,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px var(--ept-menu-pad, 12px) !important;
+	padding: 8px var(--ept-menu-pad, 12px) 8px calc(var(--ept-menu-pad, 12px) / 2) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
@@ -448,10 +449,11 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown {
 	position: relative;
 	align-self: center;
+	margin-left: var(--ept-menu-extra, 0px) !important;
 }
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
-	padding: 8px var(--ept-menu-pad, 12px) !important;
+	padding: 8px var(--ept-menu-pad, 12px) 8px calc(var(--ept-menu-pad, 12px) / 2) !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-shadow: none !important;
@@ -511,7 +513,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px var(--ept-menu-pad, 12px) !important;
+	padding: 8px var(--ept-menu-pad, 12px) 8px calc(var(--ept-menu-pad, 12px) / 2) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
@@ -529,10 +531,11 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown {
 	position: relative;
 	align-self: center;
+	margin-left: var(--ept-menu-extra, 0px) !important;
 }
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
-	padding: 8px var(--ept-menu-pad, 12px) !important;
+	padding: 8px var(--ept-menu-pad, 12px) 8px calc(var(--ept-menu-pad, 12px) / 2) !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-shadow: none !important;
@@ -592,7 +595,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px var(--ept-menu-pad, 12px) !important;
+	padding: 8px var(--ept-menu-pad, 12px) 8px calc(var(--ept-menu-pad, 12px) / 2) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
@@ -662,4 +665,96 @@ li.ept-menu-lang--heading > a {
 	nav.hfe-dropdown li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 		padding-left: var(--ept-menu-pad-mobile, 20px) !important;
 	}
+}
+
+/* ------------------------------------------------------------------ */
+/* Glass look over a photo (transparent header). Enabled from the     */
+/* site's CSS, only where wanted, e.g.:                                */
+/*   .page-id-58 .she-header-transparent-yes { --ept-lang-style: dark; } */
+/* (menu-switcher.js reads it and adds .ept-lang-glass; it goes away   */
+/* as soon as the header stops being transparent).                     */
+/* ------------------------------------------------------------------ */
+@media (min-width: 768px) {
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown.focus > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item {
+	background: rgba(255, 255, 255, .14) !important;
+	color: #fff !important;
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .22), inset -1px 0 0 rgba(255, 255, 255, .22) !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu {
+	background: rgba(255, 255, 255, .14) !important;
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+	box-shadow: inset 1px -1px 0 rgba(255, 255, 255, .22), inset -1px 0 0 rgba(255, 255, 255, .22), 0 16px 24px -12px rgba(0, 0, 0, .3) !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+	color: #fff !important;
+}
+
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
+.hfe-nav-menu__breakpoint-mobile .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
+	background: rgba(255, 255, 255, .18) !important;
+	color: #fff !important;
+}
+}
+
+@media (min-width: 1025px) {
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown.focus > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item {
+	background: rgba(255, 255, 255, .14) !important;
+	color: #fff !important;
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .22), inset -1px 0 0 rgba(255, 255, 255, .22) !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu {
+	background: rgba(255, 255, 255, .14) !important;
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+	box-shadow: inset 1px -1px 0 rgba(255, 255, 255, .22), inset -1px 0 0 rgba(255, 255, 255, .22), 0 16px 24px -12px rgba(0, 0, 0, .3) !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+	color: #fff !important;
+}
+
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
+.hfe-nav-menu__breakpoint-tablet .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
+	background: rgba(255, 255, 255, .18) !important;
+	color: #fff !important;
+}
+}
+
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown:hover > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown.focus > .hfe-has-submenu-container > a.hfe-menu-item,
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown:focus-within > .hfe-has-submenu-container > a.hfe-menu-item {
+	background: rgba(255, 255, 255, .14) !important;
+	color: #fff !important;
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .22), inset -1px 0 0 rgba(255, 255, 255, .22) !important;
+}
+
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu {
+	background: rgba(255, 255, 255, .14) !important;
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	backdrop-filter: blur(12px) saturate(1.2);
+	box-shadow: inset 1px -1px 0 rgba(255, 255, 255, .22), inset -1px 0 0 rgba(255, 255, 255, .22), 0 16px 24px -12px rgba(0, 0, 0, .3) !important;
+}
+
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+	color: #fff !important;
+}
+
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:hover,
+.hfe-nav-menu__breakpoint-none .ept-lang-glass li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
+	background: rgba(255, 255, 255, .18) !important;
+	color: #fff !important;
 }

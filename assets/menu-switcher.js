@@ -70,9 +70,26 @@
 			return;
 		}
 		const value = window.getComputedStyle( link( normal ) ).paddingLeft;
-		if ( ul.style.getPropertyValue( '--ept-menu-pad' ) !== value ) {
+		// Distance before the flags: 1.5 times the usual gap between two entries (the entry
+		// before the languages keeps its margin; the flags have half the usual left padding).
+		const own = ul.querySelector( ':scope > li.ept-menu-lang' );
+		const before = own && own.previousElementSibling;
+		const margin = before ? parseFloat( window.getComputedStyle( before ).marginRight ) || 0 : 0;
+		const extra = ( 0.5 * margin + ( parseFloat( value ) || 0 ) ) + 'px';
+		if ( ul.style.getPropertyValue( '--ept-menu-pad' ) !== value || ul.style.getPropertyValue( '--ept-menu-extra' ) !== extra ) {
 			ul.style.setProperty( '--ept-menu-pad', value );
 			ul.style.setProperty( '--ept-menu-pad-mobile', value );
+			ul.style.setProperty( '--ept-menu-extra', extra );
+		}
+	}
+
+	// Glass look: enabled by the site's CSS with --ept-lang-style: dark (or glass) on an
+	// ancestor, e.g. the transparent header of pages with a photo.
+	function theme( menu ) {
+		const value = window.getComputedStyle( menu ).getPropertyValue( '--ept-lang-style' ).trim();
+		const on = value === 'dark' || value === 'glass';
+		if ( menu.classList.contains( 'ept-lang-glass' ) !== on ) {
+			menu.classList.toggle( 'ept-lang-glass', on );
 		}
 	}
 
@@ -93,6 +110,7 @@
 							sync( menu );
 						}
 						pad( menu );
+						theme( menu );
 					}, 0 );
 				}
 			};
@@ -100,6 +118,13 @@
 			// UAE adds / removes its classes on load and on resize: follow it.
 			new MutationObserver( run ).observe( menu, { attributes: true, attributeFilter: [ 'class' ], subtree: true } );
 			window.addEventListener( 'resize', run );
+			// The header may change (Sticky Header Effects removes "transparent" when scrolling).
+			let el = menu.parentElement;
+			while ( el && el !== document.body ) {
+				new MutationObserver( run ).observe( el, { attributes: true, attributeFilter: [ 'class', 'style' ] } );
+				el = el.parentElement;
+			}
+			window.addEventListener( 'scroll', run, { passive: true } );
 		} );
 	}
 

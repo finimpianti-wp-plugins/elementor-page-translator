@@ -233,7 +233,8 @@ final class Menu_Switcher {
 	 */
 	public static function expand( $items, $args = null ) {
 		unset( $args );
-		if ( is_admin() || ! is_array( $items ) ) {
+		// Not in the menu editor; yes in the Elementor editor preview (rendered through admin-ajax).
+		if ( ( is_admin() && ! wp_doing_ajax() ) || ! is_array( $items ) ) {
 			return $items;
 		}
 		$out = array();
@@ -249,6 +250,8 @@ final class Menu_Switcher {
 			}
 			Switcher::register_assets();
 			wp_enqueue_style( 'ept-switcher' );
+			// Keeps a UAE "last item as button" on the entry before the languages.
+			wp_enqueue_script( 'ept-menu-switcher', EPT_URL . 'assets/menu-switcher.js', array(), EPT_VERSION, true );
 			foreach ( 'flat' === $mode ? self::flat( $item, $languages ) : self::dropdown( $item, $languages ) as $new ) {
 				$out[] = $new;
 			}

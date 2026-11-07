@@ -34,6 +34,12 @@ final class Menu_Switcher {
 	public const TEXT_META = '_ept_switcher_text';
 
 	/**
+	 * Look in the collapsed menu (hamburger, mobile and tablet): list (default: an entry
+	 * "Lingue" with the other languages below, flag and name) or same (as on desktop).
+	 */
+	public const MOBILE_META = '_ept_switcher_mobile';
+
+	/**
 	 * Hooks.
 	 */
 	public static function init(): void {
@@ -56,6 +62,17 @@ final class Menu_Switcher {
 	}
 
 	/**
+	 * Look of the switcher in the collapsed menu.
+	 *
+	 * @param object $item Menu item.
+	 */
+	public static function mobile_of( $item ): string {
+		$id     = (int) ( $item->db_id ?? $item->ID ?? 0 );
+		$mobile = $id > 0 ? (string) get_post_meta( $id, self::MOBILE_META, true ) : '';
+		return 'same' === $mobile ? 'same' : 'list';
+	}
+
+	/**
 	 * Options in the panel of the item (Appearance -> Menus, click on the item).
 	 *
 	 * @param int    $item_id Item ID.
@@ -68,6 +85,7 @@ final class Menu_Switcher {
 		}
 		$item_id = (int) $item_id;
 		$text    = self::text_of( $item );
+		$mobile  = self::mobile_of( $item );
 		// The URL of this item is technical: hidden, the choices below replace it.
 		echo '<style>#menu-item-settings-' . (int) $item_id . ' .field-url{display:none}</style>';
 		?>
@@ -85,6 +103,14 @@ final class Menu_Switcher {
 					<option value="flag" <?php selected( $text, 'flag' ); ?>><?php esc_html_e( 'Niente: solo le bandiere', 'ept' ); ?></option>
 					<option value="code" <?php selected( $text, 'code' ); ?>><?php esc_html_e( 'La sigla (IT, EN)', 'ept' ); ?></option>
 					<option value="name" <?php selected( $text, 'name' ); ?>><?php esc_html_e( 'Il nome (Italiano, English)', 'ept' ); ?></option>
+				</select>
+			</label>
+		</p>
+		<p class="description description-wide ept-switcher-fields">
+			<label for="ept-switcher-mobile-<?php echo (int) $item_id; ?>"><?php esc_html_e( 'Nel menu a scomparsa (hamburger su mobile e tablet)', 'ept' ); ?><br>
+				<select id="ept-switcher-mobile-<?php echo (int) $item_id; ?>" name="ept-switcher-mobile[<?php echo (int) $item_id; ?>]" class="widefat">
+					<option value="list" <?php selected( $mobile, 'list' ); ?>><?php esc_html_e( 'Elenco: la voce "Lingue" e sotto le altre lingue (bandiera e nome)', 'ept' ); ?></option>
+					<option value="same" <?php selected( $mobile, 'same' ); ?>><?php esc_html_e( 'Come sul computer', 'ept' ); ?></option>
 				</select>
 			</label>
 		</p>
@@ -108,6 +134,10 @@ final class Menu_Switcher {
 		if ( isset( $_POST['ept-switcher-text'][ $item_id ] ) ) {
 			$text = sanitize_key( wp_unslash( $_POST['ept-switcher-text'][ $item_id ] ) );
 			update_post_meta( $item_id, self::TEXT_META, in_array( $text, array( 'flag', 'code', 'name' ), true ) ? $text : 'flag' );
+		}
+		if ( isset( $_POST['ept-switcher-mobile'][ $item_id ] ) ) {
+			$mobile = sanitize_key( wp_unslash( $_POST['ept-switcher-mobile'][ $item_id ] ) );
+			update_post_meta( $item_id, self::MOBILE_META, 'same' === $mobile ? 'same' : 'list' );
 		}
 		if ( isset( $_POST['ept-switcher-mode'][ $item_id ] ) ) {
 			$mode = sanitize_key( wp_unslash( $_POST['ept-switcher-mode'][ $item_id ] ) );
@@ -250,9 +280,17 @@ final class Menu_Switcher {
 			}
 			Switcher::register_assets();
 			wp_enqueue_style( 'ept-switcher' );
-			// Keeps a UAE "last item as button" on the entry before the languages.
+			// Same spacing as the other entries; keeps a UAE "last item as button" before the languages.
 			wp_enqueue_script( 'ept-menu-switcher', EPT_URL . 'assets/menu-switcher.js', array(), EPT_VERSION, true );
-			foreach ( 'flat' === $mode ? self::flat( $item, $languages ) : self::dropdown( $item, $languages ) as $new ) {
+			$desktop = 'flat' === $mode ? self::flat( $item, $languages ) : self::dropdown( $item, $languages );
+			$mobile  = 'list' === self::mobile_of( $item ) ? self::mobile_list( $item, $languages ) : array();
+			foreach ( $desktop as $new ) {
+				if ( $mobile && (int) $new->menu_item_parent === (int) $item->menu_item_parent ) {
+					$new->classes[] = 'ept-menu-lang--desktop'; // Hidden when the menu is collapsed.
+				}
+				$out[] = $new;
+			}
+			foreach ( $mobile as $new ) {
 				$out[] = $new;
 			}
 		}
@@ -327,6 +365,38 @@ final class Menu_Switcher {
 				self::label( $language, $text ),
 				(string) $language['url'],
 				$classes
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Collapsed menu (hamburger): an entry "Lingue" (not a link) and below it the other
+	 * languages, flag and name, aligned with the other entries. Shown only while the menu is
+	 * collapsed (CSS).
+	 *
+	 * @param WP_Post|object            $marker    Switcher item.
+	 * @param list<array<string,mixed>> $languages Switcher items.
+	 * @return list<object>
+	 */
+	private static function mobile_list( $marker, array $languages ): array {
+		$base   = -1 * ( (int) $marker->ID * 100 + 50 );
+		$parent = (int) $marker->menu_item_parent;
+		$out    = array(
+			self::item( $marker, $base, $parent, '<span class="ept-menu-lang__heading">' . esc_html__( 'Lingue', 'ept' ) . '</span>', '', array( 'ept-menu-lang', 'ept-menu-lang--mobile', 'ept-menu-lang--heading' ) ),
+		);
+		$i      = 0;
+		foreach ( $languages as $language ) {
+			if ( $language['current'] ) {
+				continue;
+			}
+			$out[] = self::item(
+				$marker,
+				$base - ( ++$i ),
+				$parent,
+				self::label( $language, 'name' ),
+				(string) $language['url'],
+				array( 'ept-menu-lang', 'ept-menu-lang--mobile', 'ept-menu-lang--text-name', 'ept-menu-lang__item--' . sanitize_html_class( (string) $language['code'] ) )
 			);
 		}
 		return $out;

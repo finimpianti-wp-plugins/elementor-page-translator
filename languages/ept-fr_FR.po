@@ -19,3 +19,6 @@ msgstr "(langue non publique)"
 
 msgid "Lingua non ancora pubblica: la vedono solo gli utenti che possono modificare il sito."
 msgstr "Langue pas encore publique : seuls les utilisateurs qui peuvent modifier le site la voient."
+
+msgid "Lingue"
+msgstr "Langues"

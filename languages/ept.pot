@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.15.3\n"
+"Project-Id-Version: Elementor Page Translator 0.15.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T23:16:36+00:00\n"
+"POT-Creation-Date: 2026-11-07T23:25:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -875,85 +875,98 @@ msgstr ""
 msgid "La traduzione di questa pagina non è ancora pubblicata: per ora il link resta in italiano."
 msgstr ""
 
-#: includes/class-menu-switcher.php:75
+#: includes/class-menu-switcher.php:93
 msgid "Selettore lingua: aspetto"
 msgstr ""
 
-#: includes/class-menu-switcher.php:77
+#: includes/class-menu-switcher.php:95
 msgid "Tendina: lingua corrente, le altre si aprono sotto"
 msgstr ""
 
-#: includes/class-menu-switcher.php:78
+#: includes/class-menu-switcher.php:96
 msgid "In fila: tutte le lingue una accanto all'altra"
 msgstr ""
 
-#: includes/class-menu-switcher.php:83
+#: includes/class-menu-switcher.php:101
 msgid "Accanto alle bandiere"
 msgstr ""
 
-#: includes/class-menu-switcher.php:85
+#: includes/class-menu-switcher.php:103
 msgid "Niente: solo le bandiere"
 msgstr ""
 
-#: includes/class-menu-switcher.php:86
+#: includes/class-menu-switcher.php:104
 msgid "La sigla (IT, EN)"
 msgstr ""
 
-#: includes/class-menu-switcher.php:87
+#: includes/class-menu-switcher.php:105
 msgid "Il nome (Italiano, English)"
 msgstr ""
 
-#: includes/class-menu-switcher.php:140
+#: includes/class-menu-switcher.php:110
+msgid "Nel menu a scomparsa (hamburger su mobile e tablet)"
+msgstr ""
+
+#: includes/class-menu-switcher.php:112
+msgid "Elenco: la voce \"Lingue\" e sotto le altre lingue (bandiera e nome)"
+msgstr ""
+
+#: includes/class-menu-switcher.php:113
+msgid "Come sul computer"
+msgstr ""
+
+#: includes/class-menu-switcher.php:170
 msgid "Selettore lingua"
 msgstr ""
 
-#: includes/class-menu-switcher.php:148
+#: includes/class-menu-switcher.php:178
 msgid "Tendina: bandiera della lingua corrente, le altre si aprono sotto"
 msgstr ""
 
-#: includes/class-menu-switcher.php:149
+#: includes/class-menu-switcher.php:179
 msgid "In fila: tutte le bandiere una accanto all'altra"
 msgstr ""
 
-#: includes/class-menu-switcher.php:153
+#: includes/class-menu-switcher.php:183
 msgid "Aggiunge le lingue a questo menu: nel menu del computer e, su mobile, dentro il menu hamburger. Aggiungilo a ogni menu usato nell'header, anche a quelli delle altre lingue (es. \"Menu EN\")."
 msgstr ""
 
-#: includes/class-menu-switcher.php:155
+#: includes/class-menu-switcher.php:185
 msgid "Di base mostra solo le bandiere. Dopo averlo aggiunto, apri la voce \"Lingue\" nel menu per mostrare anche la sigla (IT, EN) o il nome (Italiano, English)."
 msgstr ""
 
-#: includes/class-menu-switcher.php:165
+#: includes/class-menu-switcher.php:195
+#: includes/class-menu-switcher.php:386
 msgid "Lingue"
 msgstr ""
 
-#: includes/class-menu-switcher.php:173
+#: includes/class-menu-switcher.php:203
 msgid "Aggiungi al menu"
 msgstr ""
 
-#: includes/class-menu-switcher.php:203
+#: includes/class-menu-switcher.php:233
 msgid "selettore presente"
 msgstr ""
 
-#: includes/class-menu-switcher.php:203
+#: includes/class-menu-switcher.php:233
 msgid "senza selettore"
 msgstr ""
 
-#: includes/class-menu-switcher.php:218
+#: includes/class-menu-switcher.php:248
 msgid "Selettore lingua (in fila)"
 msgstr ""
 
-#: includes/class-menu-switcher.php:218
+#: includes/class-menu-switcher.php:248
 msgid "Selettore lingua (tendina)"
 msgstr ""
 
 #. translators: %s: language name.
-#: includes/class-menu-switcher.php:354
+#: includes/class-menu-switcher.php:424
 #, php-format
 msgid "Lingua: %s"
 msgstr ""
 
-#: includes/class-menu-switcher.php:357
+#: includes/class-menu-switcher.php:427
 #: includes/class-switcher.php:269
 msgid "Lingua non ancora pubblica: la vedono solo gli utenti che possono modificare il sito."
 msgstr ""

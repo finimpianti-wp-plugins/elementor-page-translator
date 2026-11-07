@@ -369,7 +369,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 }
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
-	padding: 8px 10px !important;
+	padding: 8px var(--ept-menu-pad, 12px) !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-shadow: none !important;
@@ -429,7 +429,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px 10px !important;
+	padding: 8px var(--ept-menu-pad, 12px) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
@@ -451,7 +451,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 }
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
-	padding: 8px 10px !important;
+	padding: 8px var(--ept-menu-pad, 12px) !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-shadow: none !important;
@@ -511,7 +511,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px 10px !important;
+	padding: 8px var(--ept-menu-pad, 12px) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
@@ -532,7 +532,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 }
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > .hfe-has-submenu-container > a.hfe-menu-item {
-	padding: 8px 10px !important;
+	padding: 8px var(--ept-menu-pad, 12px) !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-shadow: none !important;
@@ -592,7 +592,7 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
 	display: flex !important;
-	padding: 8px 10px !important;
+	padding: 8px var(--ept-menu-pad, 12px) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
@@ -605,4 +605,61 @@ li.ept-menu-lang--flat.ept-menu-lang--current .ept-menu-flag {
 .hfe-nav-menu__breakpoint-none li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item:focus-visible {
 	background: #eef3f0 !important;
 	color: #1f2a24 !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Collapsed menu (hamburger on mobile / tablet).                     */
+/* "Elenco" option: the desktop entry is hidden and an entry "Lingue" */
+/* with the other languages below it is shown, aligned with the other */
+/* entries of the menu.                                                */
+/* ------------------------------------------------------------------ */
+li.ept-menu-lang--mobile {
+	display: none !important;
+}
+
+@media (max-width: 767px) {
+	.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--desktop,
+	.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--desktop {
+		display: none !important;
+	}
+
+	.hfe-nav-menu__breakpoint-mobile li.ept-menu-lang--mobile,
+	.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--mobile {
+		display: block !important;
+	}
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+	.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--desktop {
+		display: none !important;
+	}
+
+	.hfe-nav-menu__breakpoint-tablet li.ept-menu-lang--mobile {
+		display: block !important;
+	}
+}
+
+/* The entry "Lingue": a small title, not a link, grouped with the languages below it. */
+li.ept-menu-lang--heading,
+li.ept-menu-lang--heading > a {
+	border-bottom: 0 !important;
+}
+
+li.ept-menu-lang--heading > a {
+	padding-bottom: 4px !important;
+	pointer-events: none;
+	cursor: default;
+	font-size: .78em !important;
+	font-weight: 600;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	opacity: .6;
+}
+
+/* Option "Come sul computer" in the collapsed menu: the other languages aligned with the
+   current flag (UAE indents sub-menu entries). */
+@media (max-width: 1024px) {
+	nav.hfe-dropdown li.ept-menu-lang--dropdown > ul.sub-menu a.hfe-sub-menu-item {
+		padding-left: var(--ept-menu-pad-mobile, 20px) !important;
+	}
 }

@@ -312,7 +312,7 @@ final class Seo {
 	 * Output in <head>.
 	 */
 	public static function head(): void {
-		if ( is_admin() ) {
+		if ( is_admin() || Not_Found::is_active() ) {
 			return;
 		}
 		$alternates = self::alternates();
@@ -499,7 +499,7 @@ final class Seo {
 	 * @return array<int,int>
 	 */
 	public static function excluded_ids( $ids = array() ) {
-		$ids     = is_array( $ids ) ? $ids : array();
+		$ids     = array_values( array_unique( array_merge( is_array( $ids ) ? array_map( 'intval', $ids ) : array(), Not_Found::page_ids() ) ) );
 		$private = array_keys( array_diff_key( Languages::all(), Languages::published() ) );
 		if ( ! $private ) {
 			return $ids;

@@ -99,7 +99,7 @@ final class Switcher {
 	 * Italian page corresponding to the current request, or 0.
 	 */
 	public static function current_source(): int {
-		if ( ! is_singular( 'page' ) ) {
+		if ( ! is_singular( 'page' ) || Not_Found::is_active() ) {
 			return 0;
 		}
 		$id = (int) get_queried_object_id();

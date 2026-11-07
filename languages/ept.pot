@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Elementor Page Translator 0.12.0\n"
+"Project-Id-Version: Elementor Page Translator 0.13.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elementor-page-translator\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T15:29:55+00:00\n"
+"POT-Creation-Date: 2026-11-07T15:47:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ept\n"
@@ -36,7 +36,7 @@ msgid "Censimento Elementor"
 msgstr ""
 
 #: includes/admin/class-census-page.php:48
-#: includes/admin/class-settings-page.php:77
+#: includes/admin/class-settings-page.php:79
 msgid "Non hai i permessi per accedere a questa pagina."
 msgstr ""
 
@@ -105,7 +105,7 @@ msgid "regola di riserva"
 msgstr ""
 
 #: includes/admin/class-census-page.php:130
-#: includes/admin/class-settings-page.php:375
+#: includes/admin/class-settings-page.php:391
 msgid "Non hai i permessi per eseguire questa operazione."
 msgstr ""
 
@@ -134,6 +134,7 @@ msgid "Hai cambiato lo slug della pagina \"%1$s\" da \"%2$s\" a \"%3$s\". Vuoi a
 msgstr ""
 
 #: includes/admin/class-lifecycle-notices.php:109
+#: includes/admin/class-settings-page.php:669
 #: includes/class-switcher.php:318
 #: assets/translation-screen.js:221
 msgid "Lingua"
@@ -234,9 +235,9 @@ msgstr ""
 
 #: includes/admin/class-lifecycle-notices.php:172
 #: includes/admin/class-pages-list.php:95
-#: includes/admin/class-settings-page.php:46
-#: includes/admin/class-settings-page.php:47
-#: includes/admin/class-settings-page.php:85
+#: includes/admin/class-settings-page.php:48
+#: includes/admin/class-settings-page.php:49
+#: includes/admin/class-settings-page.php:87
 msgid "Traduzioni"
 msgstr ""
 
@@ -332,292 +333,374 @@ msgstr ""
 msgid "Descrizione mostrata nei risultati dei motori di ricerca, circa %d caratteri. Le traduzioni si scrivono nella schermata di traduzione."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:61
+#: includes/admin/class-settings-page.php:63
 msgid "Impostazioni"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:89
+#: includes/admin/class-settings-page.php:91
 msgid "I permalink del sito sono disattivati (Impostazioni → Permalink: \"Semplice\"). Le traduzioni funzionano, ma gli indirizzi sono del tipo ?page_id=123 invece di /en/nome-pagina/. Per avere gli indirizzi per lingua scegli, per esempio, \"Nome articolo\" in Impostazioni → Permalink."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:90
+#: includes/admin/class-settings-page.php:92
 msgid "Apri le impostazioni dei permalink"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:94
+#: includes/admin/class-settings-page.php:96
 msgid "Lingua predefinita"
 msgstr ""
 
 #. translators: 1: language name, 2: code, 3: locale.
-#: includes/admin/class-settings-page.php:99
+#: includes/admin/class-settings-page.php:101
 #, php-format
 msgid "%1$s (codice %2$s, locale %3$s). Le pagine in questa lingua restano sugli URL attuali, senza prefisso."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:107
+#: includes/admin/class-settings-page.php:109
 msgid "Lingue aggiuntive"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:109
+#: includes/admin/class-settings-page.php:111
 msgid "Nessuna lingua aggiuntiva configurata."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:117
-#: includes/admin/class-settings-page.php:133
-#: includes/admin/class-settings-page.php:189
+#: includes/admin/class-settings-page.php:119
+#: includes/admin/class-settings-page.php:135
+#: includes/admin/class-settings-page.php:191
 msgid "Nome nativo"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:118
-#: includes/admin/class-settings-page.php:184
+#: includes/admin/class-settings-page.php:120
+#: includes/admin/class-settings-page.php:186
 msgid "Codice"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:119
-msgid "Locale"
-msgstr ""
-
-#: includes/admin/class-settings-page.php:120
-#: includes/admin/class-settings-page.php:136
-#: includes/admin/class-settings-page.php:194
-msgid "Prefisso URL"
-msgstr ""
-
 #: includes/admin/class-settings-page.php:121
-#: includes/admin/class-settings-page.php:137
-msgid "Attiva"
+msgid "Locale"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:122
 #: includes/admin/class-settings-page.php:138
-msgid "Pubblica"
+#: includes/admin/class-settings-page.php:196
+msgid "Prefisso URL"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:123
 #: includes/admin/class-settings-page.php:139
-msgid "Ordine"
+msgid "Attiva"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:124
-msgid "Pagina radice"
+#: includes/admin/class-settings-page.php:140
+msgid "Pubblica"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:125
-msgid "Pacchetto lingua WordPress"
+#: includes/admin/class-settings-page.php:141
+msgid "Ordine"
 msgstr ""
 
 #: includes/admin/class-settings-page.php:126
+msgid "Pagina radice"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:127
+msgid "Pacchetto lingua WordPress"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:128
 msgid "Azioni"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:144
+#: includes/admin/class-settings-page.php:146
 msgid "Rimuovere questa lingua dalla configurazione? Le pagine non vengono eliminate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:144
+#: includes/admin/class-settings-page.php:146
 msgid "Rimuovi"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:152
+#: includes/admin/class-settings-page.php:154
 msgid "\"Attiva\": la lingua si può tradurre e ha la sua pagina radice. \"Pubblica\": le pagine sono visibili ai visitatori, nel selettore, negli hreflang e nella sitemap. Una lingua attiva ma non pubblica è visibile solo agli utenti connessi con permesso di modifica."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:155
+#: includes/admin/class-settings-page.php:157
 msgid "Cambiare il prefisso di una lingua attiva cambia lo slug della sua pagina radice, e quindi l'URL di tutte le pagine di quella lingua."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:157
+#: includes/admin/class-settings-page.php:159
 msgid "Salva lingue"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:161
-#: includes/admin/class-settings-page.php:206
+#: includes/admin/class-settings-page.php:163
+#: includes/admin/class-settings-page.php:208
 msgid "Aggiungi lingua"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:167
+#: includes/admin/class-settings-page.php:169
 msgid "Lingua (locale WordPress)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:170
+#: includes/admin/class-settings-page.php:172
 msgid "— Scegli —"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:180
+#: includes/admin/class-settings-page.php:182
 msgid "Per l'inglese scegli en_GB (britannico) o en_US (americano). Le lingue scritte da destra a sinistra non sono disponibili."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:186
+#: includes/admin/class-settings-page.php:188
 msgid "Facoltativo: se vuoto si ricava dal locale (en_GB → en)."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:191
+#: includes/admin/class-settings-page.php:193
 msgid "Facoltativo: se vuoto si usa il nome fornito da WordPress (es. \"English (UK)\"). Consigliato un nome breve, es. \"English\"."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:196
+#: includes/admin/class-settings-page.php:198
 msgid "Facoltativo: se vuoto è uguale al codice."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:199
+#: includes/admin/class-settings-page.php:201
 msgid "Opzioni"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:201
+#: includes/admin/class-settings-page.php:203
 msgid "Attiva subito (crea la pagina radice in bozza)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:202
+#: includes/admin/class-settings-page.php:204
 msgid "Scarica il pacchetto lingua di WordPress (testi di tema e plugin tradotti)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:209
+#: includes/admin/class-settings-page.php:211
 msgid "Proposte automatiche (DeepL)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:212
+#: includes/admin/class-settings-page.php:218
 msgid "Generali"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:218
+#: includes/admin/class-settings-page.php:223
+msgid "Pagina 404"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:225
+msgid "— Pagina 404 del tema —"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:230
+msgid "Facoltativo: una pagina Elementor italiana mostrata al posto della pagina \"non trovata\" del tema (il codice resta 404). Traducila come le altre: in ogni lingua viene mostrata la sua versione; se manca, si usa la 404 del tema."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:234
 msgid "Alla disinstallazione elimina i dati del plugin (impostazioni, collegamenti tra traduzioni, memoria traduzioni). Le pagine tradotte non vengono mai eliminate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:220
-#: includes/admin/class-settings-page.php:277
+#: includes/admin/class-settings-page.php:236
+#: includes/admin/class-settings-page.php:293
 msgid "Salva"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:235
+#: includes/admin/class-settings-page.php:251
 msgid "Facoltativo. Senza DeepL la schermata di traduzione funziona lo stesso: a mano, con la memoria traduzioni e con i pulsanti \"Copia testi da tradurre\" / \"Incolla traduzioni\" (Google Traduttore o altro traduttore gratuito sul web, senza account)."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:236
+#: includes/admin/class-settings-page.php:252
 msgid "Con una chiave DeepL API i campi arrivano già compilati da proposte da rivedere. Dal 2026 i nuovi iscritti trovano il piano gratuito \"Developer\" (1 milione di caratteri una tantum) o piani a pagamento: verifica le condizioni su deepl.com prima di iscriverti."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:242
+#: includes/admin/class-settings-page.php:258
 msgid "Proposte DeepL"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:243
+#: includes/admin/class-settings-page.php:259
 msgid "Attiva le proposte automatiche con DeepL"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:246
+#: includes/admin/class-settings-page.php:262
 msgid "Chiave API DeepL"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:248
+#: includes/admin/class-settings-page.php:264
 msgid "Incolla qui la chiave"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:249
+#: includes/admin/class-settings-page.php:265
 msgid "La chiave non viene mai mostrata per intero. Lascia il campo vuoto per mantenere quella attuale. L'indirizzo del servizio (piano gratuito o a pagamento) viene riconosciuto alla verifica."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:251
+#: includes/admin/class-settings-page.php:267
 msgid "Rimuovi la chiave"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:257
+#: includes/admin/class-settings-page.php:273
 msgid "Consumo"
 msgstr ""
 
 #. translators: %s: number of characters.
-#: includes/admin/class-settings-page.php:261
+#: includes/admin/class-settings-page.php:277
 #, php-format
 msgid "Caratteri inviati da questo sito nel mese: %s."
 msgstr ""
 
 #. translators: 1: characters used, 2: limit.
-#: includes/admin/class-settings-page.php:265
+#: includes/admin/class-settings-page.php:281
 #, php-format
 msgid "Account DeepL: %1$s su %2$s caratteri."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:301
+#: includes/admin/class-settings-page.php:317
 msgid "Chiave DeepL rimossa: proposte DeepL disattivate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:313
+#: includes/admin/class-settings-page.php:329
 msgid "Impostazioni salvate. Proposte DeepL disattivate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:317
+#: includes/admin/class-settings-page.php:333
 msgid "Proposte DeepL attivate, ma manca la chiave: finché non la inserisci non vengono usate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:326
+#: includes/admin/class-settings-page.php:342
 msgid "Chiave DeepL valida: proposte attive."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:339
+#: includes/admin/class-settings-page.php:355
 msgid "Non ancora creata (si crea attivando la lingua)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:358
+#: includes/admin/class-settings-page.php:374
 msgid "Installato"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:364
+#: includes/admin/class-settings-page.php:380
 msgid "Scarica"
 msgstr ""
 
 #. translators: %s: language name.
-#: includes/admin/class-settings-page.php:428
+#: includes/admin/class-settings-page.php:444
 #, php-format
 msgid "Lingua %s aggiunta."
 msgstr ""
 
 #. translators: 1: language name, 2: error message.
-#: includes/admin/class-settings-page.php:469
+#: includes/admin/class-settings-page.php:485
 #, php-format
 msgid "%1$s: %2$s"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:485
+#: includes/admin/class-settings-page.php:501
 msgid "Lingue salvate."
 msgstr ""
 
 #. translators: 1: language name, 2: error message.
-#: includes/admin/class-settings-page.php:509
+#: includes/admin/class-settings-page.php:525
 #, php-format
 msgid "Impossibile attivare %1$s: %2$s"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:528
+#: includes/admin/class-settings-page.php:544
 msgid "Disattiva la lingua prima di rimuoverla."
 msgstr ""
 
 #. translators: %s: language name.
-#: includes/admin/class-settings-page.php:535
+#: includes/admin/class-settings-page.php:551
 #, php-format
 msgid "Lingua %s rimossa dalla configurazione. Le sue pagine, compresa la pagina radice, non sono state eliminate."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:563
+#: includes/admin/class-settings-page.php:579
 msgid "Non hai il permesso di installare pacchetti lingua."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:569
+#: includes/admin/class-settings-page.php:585
 msgid "WordPress non può scrivere i file della lingua (accesso al filesystem non disponibile)."
 msgstr ""
 
 #. translators: %s: locale.
-#: includes/admin/class-settings-page.php:575
+#: includes/admin/class-settings-page.php:591
 #, php-format
 msgid "Pacchetto lingua %s installato."
 msgstr ""
 
 #. translators: %s: locale.
-#: includes/admin/class-settings-page.php:578
+#: includes/admin/class-settings-page.php:594
 #, php-format
 msgid "Download del pacchetto lingua %s non riuscito."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:592
+#: includes/admin/class-settings-page.php:609
 msgid "Impostazioni salvate."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:661
+msgid "Nome e motto del sito per lingua"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:662
+msgid "Compaiono nel titolo della scheda del browser, nei risultati di Google, nell'Open Graph e nei widget UAE \"Site Title\" e \"Site Tagline\". Il nome di solito resta quello dell'azienda; il motto si traduce. Se un campo è vuoto si usa quello italiano."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:670
+msgid "Nome del sito"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:671
+msgid "Motto"
+msgstr ""
+
+#. translators: %s: language name.
+#: includes/admin/class-settings-page.php:679
+#, php-format
+msgid "Nome del sito in %s"
+msgstr ""
+
+#. translators: %s: language name.
+#: includes/admin/class-settings-page.php:680
+#, php-format
+msgid "Motto in %s"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:685
+msgid "Salva nome e motto"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:697
+msgid "Nome e motto salvati."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:711
+msgid "Banner dei cookie (Complianz)"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:712
+msgid "Il banner ha due versioni: italiano sulle pagine italiane, inglese su tutte le altre lingue. Scrivi qui i testi inglesi; quelli vuoti restano in italiano. Le etichette fisse di Complianz (es. \"Accetta\") seguono già la lingua della pagina, e i link alla cookie policy portano alla sua traduzione."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:714
+msgid "Nessun testo del banner ancora rilevato: apri una pagina italiana del sito (con il banner visibile), poi torna qui."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:725
+msgid "Testo italiano"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:726
+msgid "Testo inglese"
+msgstr ""
+
+#. translators: %s: string name.
+#: includes/admin/class-settings-page.php:733
+#, php-format
+msgid "Testo inglese di %s"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:738
+msgid "Salva testi del banner"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:750
+msgid "Testi del banner salvati."
 msgstr ""
 
 #: includes/admin/class-translation-screen.php:61
@@ -680,35 +763,35 @@ msgstr ""
 msgid "Errore di DeepL (codice %d): riprova più tardi."
 msgstr ""
 
-#: includes/class-languages.php:230
+#: includes/class-languages.php:246
 msgid "Locale non valido."
 msgstr ""
 
-#: includes/class-languages.php:231
+#: includes/class-languages.php:247
 msgid "Le lingue scritte da destra a sinistra non sono supportate."
 msgstr ""
 
-#: includes/class-languages.php:232
+#: includes/class-languages.php:248
 msgid "Codice lingua non valido: usa lettere minuscole, per esempio \"en\" o \"pt-br\"."
 msgstr ""
 
-#: includes/class-languages.php:233
+#: includes/class-languages.php:249
 msgid "Il codice coincide con quello della lingua predefinita."
 msgstr ""
 
-#: includes/class-languages.php:234
+#: includes/class-languages.php:250
 msgid "Esiste già una lingua con questo codice."
 msgstr ""
 
-#: includes/class-languages.php:235
+#: includes/class-languages.php:251
 msgid "Il nome della lingua è obbligatorio."
 msgstr ""
 
-#: includes/class-languages.php:236
+#: includes/class-languages.php:252
 msgid "Prefisso URL non valido o riservato da WordPress: usa lettere minuscole, numeri e trattini."
 msgstr ""
 
-#: includes/class-languages.php:237
+#: includes/class-languages.php:253
 msgid "Il prefisso URL è già usato da un'altra lingua."
 msgstr ""
 

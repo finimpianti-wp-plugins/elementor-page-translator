@@ -35,6 +35,26 @@ final class Uae_Home_Links {
 		add_action( 'elementor/frontend/widget/before_render', array( self::class, 'before' ) );
 		add_action( 'elementor/frontend/widget/after_render', array( self::class, 'after' ) );
 		add_filter( 'elementor/widget/render_content', array( self::class, 'dedupe' ), 10, 2 );
+		add_filter( 'elementor/element/is_dynamic_content', array( self::class, 'dynamic' ), 10, 3 );
+	}
+
+	/**
+	 * Widgets whose output depends on the language of the page (home link, site name and
+	 * tagline, search form field) are not stored in Elementor's element cache: a header shared
+	 * by several languages would otherwise show the cached output of the first language.
+	 *
+	 * @param bool  $dynamic  Dynamic.
+	 * @param array $raw_data Element data.
+	 * @param mixed $element  Element.
+	 * @return bool
+	 */
+	public static function dynamic( $dynamic, $raw_data = array(), $element = null ) {
+		unset( $raw_data );
+		if ( ! $dynamic && Languages::all() && is_object( $element ) && method_exists( $element, 'get_name' )
+			&& in_array( $element->get_name(), array_merge( self::WIDGETS, array( 'hfe-site-tagline', 'hfe-search-button' ) ), true ) ) {
+			return true;
+		}
+		return (bool) $dynamic;
 	}
 
 	/**

@@ -30,6 +30,11 @@ final class Plugin {
 		Uae_Templates::init();
 		Seo::init();
 		Lifecycle::init();
+		Visibility::init();
+		Search::init();
+		Not_Found::init();
+		Site_Identity::init();
+		Complianz::init();
 
 		if ( is_admin() ) {
 			Admin\Notices::init();

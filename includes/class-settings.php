@@ -27,6 +27,7 @@ final class Settings {
 			'deepl_enabled'            => false,
 			'deepl_key'                => '',
 			'deepl_endpoint'           => '',
+			'not_found_page'           => 0,
 		);
 	}
 

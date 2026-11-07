@@ -129,6 +129,22 @@ final class Languages {
 	}
 
 	/**
+	 * Whether the current visitor may see a language: the default language and public ones
+	 * for everybody; the other configured languages only for users who can edit pages.
+	 *
+	 * @param string $code Code.
+	 */
+	public static function is_visible( string $code ): bool {
+		if ( self::default_code() === $code ) {
+			return true;
+		}
+		if ( null === self::get( $code ) ) {
+			return false;
+		}
+		return isset( self::published()[ $code ] ) || current_user_can( 'edit_pages' );
+	}
+
+	/**
 	 * One additional language.
 	 *
 	 * @param string $code Code.

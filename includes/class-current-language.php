@@ -3,8 +3,9 @@
  * Current language of a front-end request (SPECIFICHE.md, "Lingua corrente").
  *
  * - Taken from the page being viewed: its _ept_lang, else the default language.
- * - Non-singular requests (archives, search, 404) use the default language
- *   (the language of 404 pages from the URL comes in F10).
+ * - Search results: the language sent by the search form (hidden field "lang").
+ * - 404: the language whose prefix is the first segment of the URL (/de/… -> de).
+ * - Other non-singular requests (archives) use the default language.
  * - Once the page is known (action "wp"), the WordPress locale is switched with
  *   switch_to_locale(): theme and plugin strings and <html lang> follow. When the
  *   language pack is not installed, the locale is still filtered so <html lang>
@@ -99,7 +100,40 @@ final class Current_Language {
 				}
 			}
 		}
+		if ( is_search() ) {
+			// The search form of a language carries it in a hidden field.
+			$lang = Search::requested_language();
+			if ( '' !== $lang ) {
+				return $lang;
+			}
+		}
+		if ( is_404() ) {
+			// /de/pagina-inesistente -> German (header, footer and switcher in German).
+			$lang = self::language_of_path( isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' );
+			if ( '' !== $lang ) {
+				return $lang;
+			}
+		}
 		return Languages::default_code();
+	}
+
+	/**
+	 * Language whose prefix is the first segment of a URL path ('' when none or not visible).
+	 *
+	 * @param string $uri Request URI.
+	 */
+	public static function language_of_path( string $uri ): string {
+		$path  = (string) Links::internal_path( '/' . ltrim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' ) );
+		$first = strtolower( (string) strtok( trim( $path, '/' ), '/' ) );
+		if ( '' === $first ) {
+			return '';
+		}
+		foreach ( Languages::all() as $code => $lang ) {
+			if ( (string) $lang['prefix'] === $first && ! empty( $lang['active'] ) && Languages::is_visible( (string) $code ) ) {
+				return (string) $code;
+			}
+		}
+		return '';
 	}
 
 	/**

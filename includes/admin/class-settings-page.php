@@ -35,6 +35,8 @@ final class Settings_Page {
 		add_action( 'admin_post_ept_install_language_pack', array( self::class, 'handle_install_language_pack' ) );
 		add_action( 'admin_post_ept_save_general', array( self::class, 'handle_save_general' ) );
 		add_action( 'admin_post_ept_save_deepl', array( self::class, 'handle_save_deepl' ) );
+		add_action( 'admin_post_ept_save_identity', array( self::class, 'handle_save_identity' ) );
+		add_action( 'admin_post_ept_save_complianz', array( self::class, 'handle_save_complianz' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( EPT_FILE ), array( self::class, 'plugin_links' ) );
 	}
 
@@ -209,10 +211,24 @@ final class Settings_Page {
 			<h2><?php esc_html_e( 'Proposte automatiche (DeepL)', 'ept' ); ?></h2>
 			<?php self::render_deepl(); ?>
 
+			<?php self::render_identity(); ?>
+
+			<?php self::render_complianz(); ?>
+
 			<h2><?php esc_html_e( 'Generali', 'ept' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="ept_save_general">
 				<?php wp_nonce_field( 'ept_save_general' ); ?>
+				<p>
+					<label for="ept-not-found"><strong><?php esc_html_e( 'Pagina 404', 'ept' ); ?></strong></label><br>
+					<select id="ept-not-found" name="not_found_page">
+						<option value="0"><?php esc_html_e( '— Pagina 404 del tema —', 'ept' ); ?></option>
+						<?php foreach ( self::not_found_candidates() as $candidate ) : ?>
+							<option value="<?php echo esc_attr( (string) $candidate->ID ); ?>" <?php selected( (int) ( $general['not_found_page'] ?? 0 ), $candidate->ID ); ?>><?php echo esc_html( '' !== $candidate->post_title ? $candidate->post_title : '#' . $candidate->ID ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<span class="description"><?php esc_html_e( 'Facoltativo: una pagina Elementor italiana mostrata al posto della pagina "non trovata" del tema (il codice resta 404). Traducila come le altre: in ogni lingua viene mostrata la sua versione; se manca, si usa la 404 del tema.', 'ept' ); ?></span>
+				</p>
 				<label>
 					<input type="checkbox" name="delete_data_on_uninstall" value="1" <?php checked( ! empty( $general['delete_data_on_uninstall'] ) ); ?>>
 					<?php esc_html_e( 'Alla disinstallazione elimina i dati del plugin (impostazioni, collegamenti tra traduzioni, memoria traduzioni). Le pagine tradotte non vengono mai eliminate.', 'ept' ); ?>
@@ -587,9 +603,151 @@ final class Settings_Page {
 		Settings::update(
 			array(
 				'delete_data_on_uninstall' => ! empty( $_POST['delete_data_on_uninstall'] ), // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in guard().
+				'not_found_page'           => self::valid_not_found( isset( $_POST['not_found_page'] ) ? absint( $_POST['not_found_page'] ) : 0 ), // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in guard().
 			)
 		);
 		Notices::add( 'success', __( 'Impostazioni salvate.', 'ept' ) );
+		self::back();
+	}
+
+	/**
+	 * Italian Elementor pages usable as 404 page.
+	 *
+	 * @return list<\WP_Post>
+	 */
+	private static function not_found_candidates(): array {
+		$pages = get_pages(
+			array(
+				'post_status' => 'publish,draft,private',
+				'sort_column' => 'post_title',
+			)
+		);
+		return array_values(
+			array_filter(
+				is_array( $pages ) ? $pages : array(),
+				static fn( $page ): bool => \EPT\Translations::is_source( (int) $page->ID )
+					&& null === \EPT\Root_Pages::root_language( (int) $page->ID )
+					&& 'builder' === get_post_meta( (int) $page->ID, '_elementor_edit_mode', true )
+			)
+		);
+	}
+
+	/**
+	 * Validated 404 page ID (0 when not a candidate).
+	 *
+	 * @param int $id Page ID.
+	 */
+	private static function valid_not_found( int $id ): int {
+		foreach ( self::not_found_candidates() as $candidate ) {
+			if ( (int) $candidate->ID === $id ) {
+				return $id;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * Site name and tagline per language.
+	 */
+	private static function render_identity(): void {
+		$languages = Languages::all();
+		if ( ! $languages ) {
+			return;
+		}
+		$values = \EPT\Site_Identity::all();
+		$name   = (string) get_option( 'blogname' );
+		$motto  = (string) get_option( 'blogdescription' );
+		?>
+		<h2><?php esc_html_e( 'Nome e motto del sito per lingua', 'ept' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Compaiono nel titolo della scheda del browser, nei risultati di Google, nell\'Open Graph e nei widget UAE "Site Title" e "Site Tagline". Il nome di solito resta quello dell\'azienda; il motto si traduce. Se un campo è vuoto si usa quello italiano.', 'ept' ); ?></p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="ept_save_identity">
+			<?php wp_nonce_field( 'ept_save_identity' ); ?>
+			<table class="widefat striped" style="max-width:900px">
+				<thead>
+					<tr>
+						<th scope="col"><?php esc_html_e( 'Lingua', 'ept' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Nome del sito', 'ept' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Motto', 'ept' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $languages as $code => $lang ) : ?>
+						<?php $code = (string) $code; ?>
+						<tr>
+							<th scope="row"><?php echo esc_html( (string) $lang['name'] ); ?></th>
+							<td><input type="text" class="regular-text" aria-label="<?php /* translators: %s: language name. */ echo esc_attr( sprintf( __( 'Nome del sito in %s', 'ept' ), $lang['name'] ) ); ?>" name="identity[<?php echo esc_attr( $code ); ?>][name]" value="<?php echo esc_attr( $values[ $code ]['name'] ?? '' ); ?>" placeholder="<?php echo esc_attr( $name ); ?>"></td>
+							<td><input type="text" class="regular-text" aria-label="<?php /* translators: %s: language name. */ echo esc_attr( sprintf( __( 'Motto in %s', 'ept' ), $lang['name'] ) ); ?>" name="identity[<?php echo esc_attr( $code ); ?>][tagline]" value="<?php echo esc_attr( $values[ $code ]['tagline'] ?? '' ); ?>" placeholder="<?php echo esc_attr( $motto ); ?>"></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php submit_button( __( 'Salva nome e motto', 'ept' ), 'secondary' ); ?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Save site name and tagline per language.
+	 */
+	public static function handle_save_identity(): void {
+		self::guard( 'ept_save_identity' );
+		$posted = isset( $_POST['identity'] ) && is_array( $_POST['identity'] ) ? wp_unslash( $_POST['identity'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified in guard(); sanitised in Site_Identity::save().
+		\EPT\Site_Identity::save( (array) $posted );
+		Notices::add( 'success', __( 'Nome e motto salvati.', 'ept' ) );
+		self::back();
+	}
+
+	/**
+	 * English texts of the Complianz cookie banner (only when Complianz is active).
+	 */
+	private static function render_complianz(): void {
+		if ( ! \EPT\Complianz::active() ) {
+			return;
+		}
+		$strings = \EPT\Complianz::strings();
+		$english = \EPT\Complianz::translations();
+		?>
+		<h2><?php esc_html_e( 'Banner dei cookie (Complianz)', 'ept' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Il banner ha due versioni: italiano sulle pagine italiane, inglese su tutte le altre lingue. Scrivi qui i testi inglesi; quelli vuoti restano in italiano. Le etichette fisse di Complianz (es. "Accetta") seguono già la lingua della pagina, e i link alla cookie policy portano alla sua traduzione.', 'ept' ); ?></p>
+		<?php if ( ! $strings ) : ?>
+			<p><?php esc_html_e( 'Nessun testo del banner ancora rilevato: apri una pagina italiana del sito (con il banner visibile), poi torna qui.', 'ept' ); ?></p>
+			<?php
+			return;
+		endif;
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="ept_save_complianz">
+			<?php wp_nonce_field( 'ept_save_complianz' ); ?>
+			<table class="widefat striped" style="max-width:1100px">
+				<thead>
+					<tr>
+						<th scope="col"><?php esc_html_e( 'Testo italiano', 'ept' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Testo inglese', 'ept' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $strings as $name => $text ) : ?>
+						<tr>
+							<td style="width:50%"><div><?php echo wp_kses_post( $text ); ?></div><code style="font-size:11px"><?php echo esc_html( (string) $name ); ?></code></td>
+							<td><textarea class="large-text" rows="<?php echo esc_attr( (string) min( 6, max( 1, (int) ceil( strlen( $text ) / 70 ) ) ) ); ?>" aria-label="<?php /* translators: %s: string name. */ echo esc_attr( sprintf( __( 'Testo inglese di %s', 'ept' ), $name ) ); ?>" name="complianz[<?php echo esc_attr( (string) $name ); ?>]"><?php echo esc_textarea( $english[ $name ] ?? '' ); ?></textarea></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php submit_button( __( 'Salva testi del banner', 'ept' ), 'secondary' ); ?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Save the English texts of the Complianz banner.
+	 */
+	public static function handle_save_complianz(): void {
+		self::guard( 'ept_save_complianz' );
+		$posted = isset( $_POST['complianz'] ) && is_array( $_POST['complianz'] ) ? wp_unslash( $_POST['complianz'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified in guard(); sanitised in Complianz::save().
+		\EPT\Complianz::save( (array) $posted );
+		Notices::add( 'success', __( 'Testi del banner salvati.', 'ept' ) );
 		self::back();
 	}
 }

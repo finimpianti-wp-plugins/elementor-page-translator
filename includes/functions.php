@@ -95,3 +95,12 @@ function ept_get_permalink( int $post_id, string $lang ): string {
 	$url    = $source ? EPT\Switcher::page_url( $source, $lang ) : '';
 	return '' !== $url ? $url : EPT\Switcher::home_url( $lang );
 }
+
+/**
+ * Language for complex third-party components with only two versions (cookie banner and
+ * similar): the default language on its pages, English on all the others.
+ */
+function ept_fallback_language(): string {
+	$default = EPT\Languages::default_code();
+	return ept_current_language() === $default ? $default : 'en';
+}

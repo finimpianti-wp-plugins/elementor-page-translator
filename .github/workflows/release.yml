@@ -1,49 +1,69 @@
-# Release automatica: quando si pubblica una release (o un'etichetta) vX.Y.Z uguale alla
-# Version del plugin, crea lo zip e lo allega alla release. I siti la vedono in
-# Bacheca -> Aggiornamenti.
+# Release automatica.
+# - Quando sul ramo main arriva una versione nuova del plugin (Version: nell'intestazione del
+#   file principale) e la release vX.Y.Z non esiste ancora, crea etichetta, zip e release.
+# - Se una release viene pubblicata a mano su GitHub, costruisce lo zip e lo allega.
+# Le note di versione vengono da CHANGELOG.md. I siti vedono la release in Bacheca -> Aggiornamenti.
 name: Release
 on:
   push:
-    tags: ['v*']
+    branches: [main]
   release:
     types: [published]
+  workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name || github.ref }}
-      - name: Versione del plugin uguale all'etichetta
+          ref: ${{ github.event.release.tag_name || github.sha }}
+      - name: Versione del plugin
         id: versione
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ github.event.release.tag_name || github.ref_name }}"
           MAIN="$(grep -l -m1 '^[[:space:]]*\*[[:space:]]*Plugin Name:' ./*.php | head -1)"
           VERSION="$(grep -m1 -E '^[[:space:]]*\*[[:space:]]*Version:' "$MAIN" | sed -E 's/.*Version:[[:space:]]*//; s/[[:space:]]+$//')"
-          if [ "v$VERSION" != "$TAG" ]; then
-            echo "L'etichetta $TAG non corrisponde alla versione del plugin ($VERSION)."; exit 1
-          fi
+          TAG="v$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            if [ "${{ github.event.release.tag_name }}" != "$TAG" ]; then
+              echo "La release ${{ github.event.release.tag_name }} non corrisponde alla versione del plugin ($VERSION)."; exit 1
+            fi
+            echo "fare=si" >> "$GITHUB_OUTPUT"
+          elif gh release view "$TAG" >/dev/null 2>&1; then
+            echo "La release $TAG esiste già: niente da fare."
+            echo "fare=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "fare=si" >> "$GITHUB_OUTPUT"
+          fi
       - name: Crea lo zip
+        if: steps.versione.outputs.fare == 'si'
         run: bash bin/build-zip.sh
       - name: Note di versione dal CHANGELOG
+        if: steps.versione.outputs.fare == 'si'
         run: |
           awk -v v="${{ steps.versione.outputs.version }}" '
             $0 ~ "^## " v "( |$)" {on=1; next}
             on && /^## / {exit}
             on {print}' CHANGELOG.md > note.md
           [ -s note.md ] || echo "Versione ${{ steps.versione.outputs.version }}" > note.md
-      - name: Pubblica o completa la release
+      - name: Pubblica la release
+        if: steps.versione.outputs.fare == 'si'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ steps.versione.outputs.tag }}"
+          TITLE="Versione ${{ steps.versione.outputs.version }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.zip --clobber
-            gh release edit "$TAG" --title "Versione ${{ steps.versione.outputs.version }}" --notes-file note.md
+            gh release edit "$TAG" --title "$TITLE" --notes-file note.md
           else
-            gh release create "$TAG" dist/*.zip --title "Versione ${{ steps.versione.outputs.version }}" --notes-file note.md
+            gh release create "$TAG" dist/*.zip --target "$GITHUB_SHA" --title "$TITLE" --notes-file note.md
           fi

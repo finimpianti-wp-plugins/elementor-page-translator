@@ -1,0 +1,16 @@
+.git
+.github
+.gitignore
+.gitattributes
+.distignore
+.DS_Store
+bin
+dist
+tests
+README.md
+CHANGELOG.md
+phpunit*
+phpcs*
+composer.*
+node_modules
+*.orig

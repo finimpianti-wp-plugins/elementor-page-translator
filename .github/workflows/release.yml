@@ -1,0 +1,35 @@
+# Release automatica: quando si pubblica un'etichetta vX.Y.Z (uguale alla Version del plugin)
+# crea lo zip e la release su GitHub. I siti la vedono in Bacheca -> Aggiornamenti.
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versione del plugin uguale all'etichetta
+        id: versione
+        run: |
+          MAIN="$(grep -l -m1 '^[[:space:]]*\*[[:space:]]*Plugin Name:' ./*.php | head -1)"
+          VERSION="$(grep -m1 -E '^[[:space:]]*\*[[:space:]]*Version:' "$MAIN" | sed -E 's/.*Version:[[:space:]]*//; s/[[:space:]]+$//')"
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "L'etichetta $GITHUB_REF_NAME non corrisponde alla versione del plugin ($VERSION)."; exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Crea lo zip
+        run: bash bin/build-zip.sh
+      - name: Note di versione dal CHANGELOG
+        run: |
+          awk -v v="${{ steps.versione.outputs.version }}" '
+            $0 ~ "^## " v "( |$)" {on=1; next}
+            on && /^## / {exit}
+            on {print}' CHANGELOG.md > note.md
+          [ -s note.md ] || echo "Versione ${{ steps.versione.outputs.version }}" > note.md
+      - name: Pubblica la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "Versione ${{ steps.versione.outputs.version }}" --notes-file note.md

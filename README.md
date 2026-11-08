@@ -15,7 +15,7 @@ Il plugin controlla da solo le release di questo repository: quando ne esce una 
 ## Nuove versioni (per chi sviluppa)
 
 1. Aggiorna `Version:` nell'intestazione del file principale (e la costante della versione) e aggiungi le novità in `CHANGELOG.md`.
-2. Pubblica l'etichetta `v<versione>` (es. `v0.16.0`): GitHub crea lo zip e la release (`.github/workflows/release.yml`).
+2. Pubblica una release (o un'etichetta) `v<versione>` (es. `v0.16.0`): GitHub crea lo zip e la release (`.github/workflows/release.yml`).
 
 Per creare lo zip in locale: `bash bin/build-zip.sh` (risultato in `dist/`).
 

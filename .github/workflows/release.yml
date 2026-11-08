@@ -1,9 +1,12 @@
-# Release automatica: quando si pubblica un'etichetta vX.Y.Z (uguale alla Version del plugin)
-# crea lo zip e la release su GitHub. I siti la vedono in Bacheca -> Aggiornamenti.
+# Release automatica: quando si pubblica una release (o un'etichetta) vX.Y.Z uguale alla
+# Version del plugin, crea lo zip e lo allega alla release. I siti la vedono in
+# Bacheca -> Aggiornamenti.
 name: Release
 on:
   push:
     tags: ['v*']
+  release:
+    types: [published]
 permissions:
   contents: write
 jobs:
@@ -11,15 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
       - name: Versione del plugin uguale all'etichetta
         id: versione
         run: |
+          TAG="${{ github.event.release.tag_name || github.ref_name }}"
           MAIN="$(grep -l -m1 '^[[:space:]]*\*[[:space:]]*Plugin Name:' ./*.php | head -1)"
           VERSION="$(grep -m1 -E '^[[:space:]]*\*[[:space:]]*Version:' "$MAIN" | sed -E 's/.*Version:[[:space:]]*//; s/[[:space:]]+$//')"
-          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "L'etichetta $GITHUB_REF_NAME non corrisponde alla versione del plugin ($VERSION)."; exit 1
+          if [ "v$VERSION" != "$TAG" ]; then
+            echo "L'etichetta $TAG non corrisponde alla versione del plugin ($VERSION)."; exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
       - name: Crea lo zip
         run: bash bin/build-zip.sh
       - name: Note di versione dal CHANGELOG
@@ -29,7 +36,14 @@ jobs:
             on && /^## / {exit}
             on {print}' CHANGELOG.md > note.md
           [ -s note.md ] || echo "Versione ${{ steps.versione.outputs.version }}" > note.md
-      - name: Pubblica la release
+      - name: Pubblica o completa la release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "Versione ${{ steps.versione.outputs.version }}" --notes-file note.md
+        run: |
+          TAG="${{ steps.versione.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zip --clobber
+            gh release edit "$TAG" --title "Versione ${{ steps.versione.outputs.version }}" --notes-file note.md
+          else
+            gh release create "$TAG" dist/*.zip --title "Versione ${{ steps.versione.outputs.version }}" --notes-file note.md
+          fi

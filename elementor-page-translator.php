@@ -3,7 +3,7 @@
  * Plugin Name:       Elementor Page Translator
  * Description:       Traduce le pagine Elementor e i template UAE in copie per lingua (/en/, /de/…) con SEO multilingua.
  * Version:           0.16.0
- * Update URI:        https://github.com/apgr01/elementor-page-translator
+ * Update URI:        https://github.com/finimpianti-wp-plugins/elementor-page-translator
  * Requires at least: 6.5
  * Requires PHP:      8.2
  * Author:            Finimpianti
@@ -36,7 +36,7 @@ add_action( 'plugins_loaded', array( EPT\Plugin::class, 'boot' ) );
 // EPT_UPDATE_REPO in wp-config.php; APGR_GITHUB_TOKEN (facoltativo) serve solo per repository
 // privati o per superare i limiti di richieste di GitHub.
 if ( ! defined( 'EPT_UPDATE_REPO' ) ) {
-	define( 'EPT_UPDATE_REPO', 'https://github.com/apgr01/elementor-page-translator/' );
+	define( 'EPT_UPDATE_REPO', 'https://github.com/finimpianti-wp-plugins/elementor-page-translator/' );
 }
 require_once __DIR__ . '/lib/plugin-update-checker/plugin-update-checker.php';
 $ept_aggiornamenti = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker( EPT_UPDATE_REPO, __FILE__, 'elementor-page-translator' );

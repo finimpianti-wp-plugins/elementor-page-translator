@@ -592,7 +592,20 @@ final class Translation_Service {
 			$target_id = (int) $root;
 		}
 		$title = '' !== (string) ( $fields['title'] ?? '' ) ? (string) $fields['title'] : $source->post_title;
-		$slug  = $is_home ? (string) Languages::get( $lang )['prefix'] : sanitize_title( '' !== (string) ( $fields['slug'] ?? '' ) ? (string) $fields['slug'] : $title );
+		if ( $is_home ) {
+			$slug = (string) Languages::get( $lang )['prefix'];
+		} else {
+			// Requested slug; otherwise the current one (an update never brings back the Italian
+			// slug), or the translated title for a new translation. Always unique (Slugs).
+			$wanted = (string) ( $fields['slug'] ?? '' );
+			if ( '' === $wanted ) {
+				$wanted = null !== $target_id ? (string) get_post_field( 'post_name', $target_id ) : '';
+			}
+			if ( '' === $wanted ) {
+				$wanted = $title;
+			}
+			$slug = Slugs::for_translation( $wanted, $source->post_type, Uae_Templates::POST_TYPE === $source->post_type ? 0 : (int) $parent['id'], (int) $target_id, $lang );
+		}
 
 		$postarr = array(
 			'post_type'      => $source->post_type,

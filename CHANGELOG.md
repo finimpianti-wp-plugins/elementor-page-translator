@@ -1,5 +1,12 @@
 # Novità
 
+## 0.16.2
+
+- Le copie tradotte hanno sempre uno slug unico, anche in bozza: per i template UAE (che non hanno il prefisso della lingua nell'indirizzo) lo slug dell'originale riceve il suffisso della lingua ("footer01" → "footer01-en"). Prima una bozza tradotta poteva avere lo stesso slug dell'originale e l'anteprima di Elementor del template italiano caricava la copia tradotta, lasciando l'editor su "Caricamento".
+- Rigenerare o aggiornare una traduzione mantiene il suo slug e non lo riporta mai uguale a quello dell'originale (prima veniva ricalcolato dal titolo); vale anche per i salvataggi dall'editor e dalla modifica rapida.
+- Le pagine tradotte tengono il loro slug sotto la pagina della lingua (/en/servizi/ e /servizi/ sono indirizzi diversi).
+- All'aggiornamento le copie tradotte con slug duplicato già presenti vengono sistemate e un avviso in bacheca elenca le modifiche. In *Traduzioni* (impostazioni) la sezione "Slug duplicati" mostra i contenuti che condividono uno slug, con il pulsante per sistemare le copie tradotte.
+
 ## 0.16.1
 
 - Editor di Elementor: sulle richieste dell'editor e della sua anteprima (`?elementor-preview`, anteprima dei template) il plugin non fa mai redirect, non risponde 404 e non sostituisce la pagina richiesta (redirect dei vecchi indirizzi, pagina 404 per lingua, lingue nascoste). Precauzione: nessuna di queste funzioni interveniva su un'anteprima che risponde 200.

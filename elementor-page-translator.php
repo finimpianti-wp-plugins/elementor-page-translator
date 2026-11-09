@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Elementor Page Translator
  * Description:       Traduce le pagine Elementor e i template UAE in copie per lingua (/en/, /de/…) con SEO multilingua.
- * Version:           0.16.1
+ * Version:           0.16.2
  * Update URI:        https://github.com/finimpianti-wp-plugins/elementor-page-translator
  * Requires at least: 6.5
  * Requires PHP:      8.2
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'EPT_VERSION', '0.16.1' );
+define( 'EPT_VERSION', '0.16.2' );
 define( 'EPT_FILE', __FILE__ );
 define( 'EPT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EPT_URL', plugin_dir_url( __FILE__ ) );

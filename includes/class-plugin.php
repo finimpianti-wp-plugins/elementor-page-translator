@@ -22,6 +22,7 @@ final class Plugin {
 
 		Installer::maybe_upgrade();
 		Root_Pages::init();
+		Slugs::init();
 		Rest\Translation_Controller::init();
 		Link_Updater::init();
 		Current_Language::init();
@@ -46,6 +47,7 @@ final class Plugin {
 			Admin\Editor_Notice::init();
 			Admin\Seo_Metabox::init();
 			Admin\Lifecycle_Notices::init();
+			Admin\Slug_Report::init();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

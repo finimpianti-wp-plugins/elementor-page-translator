@@ -235,6 +235,7 @@ final class Settings_Page {
 				</label>
 				<?php submit_button( __( 'Salva', 'ept' ), 'secondary' ); ?>
 			</form>
+			<?php Slug_Report::render_section(); ?>
 		</div>
 		<?php
 	}

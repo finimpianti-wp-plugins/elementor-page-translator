@@ -17,7 +17,7 @@ final class Installer {
 	/**
 	 * Bump when the schema or stored data change; add a step to migrations().
 	 */
-	public const DB_VERSION = 3;
+	public const DB_VERSION = 4;
 
 	public const DB_VERSION_OPTION = 'ept_db_version';
 
@@ -114,6 +114,11 @@ final class Installer {
 						}
 					}
 				}
+			},
+			4 => static function (): void {
+				// Translations sharing the slug of another template / page: fixed once on "init",
+				// when every post type is registered (Slugs::run_pending_fix()).
+				update_option( Slugs::PENDING_OPTION, 1, false );
 			},
 		);
 	}

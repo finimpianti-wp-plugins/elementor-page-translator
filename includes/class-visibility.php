@@ -42,7 +42,7 @@ final class Visibility {
 	 */
 	public static function guard(): void {
 		global $wp_query;
-		if ( is_admin() || ! $wp_query instanceof WP_Query || ! is_singular() ) {
+		if ( is_admin() || ! $wp_query instanceof WP_Query || ! is_singular() || Editor_Request::active() ) {
 			return;
 		}
 		$id   = (int) get_queried_object_id();

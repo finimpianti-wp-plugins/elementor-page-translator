@@ -532,7 +532,7 @@ final class Lifecycle {
 	 * On a 404, redirect (301) an old address of a translated page to its current one.
 	 */
 	public static function redirect_old_paths(): void {
-		if ( ! is_404() ) {
+		if ( ! is_404() || Editor_Request::active() ) {
 			return;
 		}
 		$request = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';

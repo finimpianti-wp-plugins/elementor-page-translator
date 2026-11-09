@@ -1,5 +1,9 @@
 # Novità
 
+## 0.16.1
+
+- Editor di Elementor: sulle richieste dell'editor e della sua anteprima (`?elementor-preview`, anteprima dei template) il plugin non fa mai redirect, non risponde 404 e non sostituisce la pagina richiesta (redirect dei vecchi indirizzi, pagina 404 per lingua, lingue nascoste). Precauzione: nessuna di queste funzioni interveniva su un'anteprima che risponde 200.
+
 ## 0.16.0
 
 - Aggiornamenti automatici da GitHub: le nuove versioni compaiono in Bacheca → Aggiornamenti.

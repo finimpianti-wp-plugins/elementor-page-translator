@@ -89,7 +89,7 @@ final class Not_Found {
 	 */
 	public static function replace(): void {
 		global $wp_query, $post;
-		if ( ! is_404() || ! $wp_query instanceof WP_Query ) {
+		if ( ! is_404() || ! $wp_query instanceof WP_Query || Editor_Request::active() ) {
 			return;
 		}
 		$id = self::page_for( Current_Language::code() );
